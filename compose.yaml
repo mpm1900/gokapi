@@ -1,7 +1,7 @@
 services:
   db:
     image: postgres:17
-    environment:
+    environment: &postgres_env
       POSTGRES_DB: gokapi
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: password
@@ -18,9 +18,7 @@ services:
       dockerfile: Dockerfile
     container_name: "migrations"
     environment:
-      POSTGRES_DB: gokapi
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: password
+      <<: *postgres_env
       POSTGRES_HOST: db
     networks:
       - fullstack
@@ -28,7 +26,7 @@ services:
       - .:/app
     depends_on:
       - db
-    command: ["make", "migrate-db"]
+    command: ["make", "exec-migrations"]
 
   server:
     build:
@@ -36,9 +34,7 @@ services:
       dockerfile: Dockerfile
     container_name: "server"
     environment:
-      POSTGRES_DB: gokapi
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: password
+      <<: *postgres_env
       POSTGRES_HOST: db
 
     ports:

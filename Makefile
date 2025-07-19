@@ -6,5 +6,7 @@ build-server:
 run-server:
 	go run cmd/server/main.go
 	
-migrate-db:
+exec-migrations:
 	go run cmd/migrations/main.go
+
+

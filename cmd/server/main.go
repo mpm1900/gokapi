@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"encoding/json"
 	"flag"
 	"fmt"
 	"log/slog"
@@ -12,6 +11,7 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 
 	"github.com/mpm1900/gokapi/internal/db"
+	"github.com/mpm1900/gokapi/internal/server"
 )
 
 var addr = flag.String("addr", ":8080", "http service address")
@@ -36,22 +36,12 @@ func main() {
 	queries := db.New(pool)
 
 	mux := http.NewServeMux()
+	staticHandler := &server.StaticHandler{
+		Path:  "./web/dist",
+		Entry: "index.html",
+	}
 
-	mux.HandleFunc("GET /", func(w http.ResponseWriter, r *http.Request) {
-		logger.Info("Request received", "url", r.URL.Path)
-		users, err := queries.GetUsers(ctx)
-		if err != nil {
-			logger.Error("Error getting users", "err", err)
-			w.WriteHeader(http.StatusInternalServerError)
-			return
-		}
-		if users == nil {
-			users = []db.User{}
-		}
-		w.WriteHeader(http.StatusOK)
-		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(users)
-	})
+	mux.Handle("GET /", staticHandler)
 
 	mux.HandleFunc("GET /users/{name}", func(w http.ResponseWriter, r *http.Request) {
 		logger.Info("Request received", "url", r.URL.Path)
