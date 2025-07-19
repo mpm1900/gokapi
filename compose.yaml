@@ -9,12 +9,31 @@ services:
       - "5432:5432"
     volumes:
       - db_data:/var/lib/postgresql/data
-      - ./database/migrations:/docker-entrypoint-initdb.d
     networks:
       - fullstack
 
+  migrations:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: "migrations"
+    environment:
+      POSTGRES_DB: gokapi
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_HOST: db
+    networks:
+      - fullstack
+    volumes:
+      - .:/app
+    depends_on:
+      - db
+    command: ["make", "migrate-db"]
+
   server:
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile
     container_name: "server"
     environment:
       POSTGRES_DB: gokapi
@@ -29,7 +48,7 @@ services:
     volumes:
       - .:/app
     depends_on:
-      - db
+      - migrations
 
 networks:
   fullstack:

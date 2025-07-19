@@ -11,6 +11,7 @@ RUN apk add --no-cache make
 COPY . . 
 
 
+
 EXPOSE 8080
 
 CMD ["air", "-c", ".air.toml"]
