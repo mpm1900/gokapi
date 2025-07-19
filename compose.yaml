@@ -1,0 +1,39 @@
+services:
+  db:
+    image: postgres:17
+    environment:
+      POSTGRES_DB: gokapi
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+    ports:
+      - "5432:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+      - ./database/migrations:/docker-entrypoint-initdb.d
+    networks:
+      - fullstack
+
+  server:
+    build: .
+    container_name: "server"
+    environment:
+      POSTGRES_DB: gokapi
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_HOST: db
+
+    ports:
+      - "3005:8080"
+    networks:
+      - fullstack
+    volumes:
+      - .:/app
+    depends_on:
+      - db
+
+networks:
+  fullstack:
+    driver: bridge
+
+volumes:
+  db_data:
