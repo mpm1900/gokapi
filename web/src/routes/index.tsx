@@ -42,8 +42,8 @@ function App() {
             <CardContent>
               <Tabs defaultValue="login" className="flex flex-col gap-6">
                 <TabsList className="flex flex-row gap-2 self-center">
-                  <TabsTrigger value="login">Login</TabsTrigger>
-                  <TabsTrigger value="signup">Sign up</TabsTrigger>
+                  <TabsTrigger value="login">Log In</TabsTrigger>
+                  <TabsTrigger value="signup">Sign Up</TabsTrigger>
                 </TabsList>
                 <TabsContent value="signup">
                   <form
@@ -137,8 +137,7 @@ function App() {
             </CardContent>
           </Card>
           <div className="text-muted-foreground *:[a]:hover:text-primary text-center text-xs text-balance *:[a]:underline *:[a]:underline-offset-4">
-            By clicking continue, you agree to our{' '}
-            <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a>.
+            Copyright © 2025 Gokapi. All rights reserved.
           </div>
         </div>
       </div>

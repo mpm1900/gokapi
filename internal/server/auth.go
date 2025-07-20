@@ -98,6 +98,15 @@ func handleLogin(ctx context.Context, queries *db.Queries) http.HandlerFunc {
 			return
 		}
 
+		cookie := http.Cookie{
+			Name:     "token",
+			Value:    "6940farts",
+			MaxAge:   60 * 60 * 24 * 365 * 100,
+			HttpOnly: true,
+			Secure:   true,
+			SameSite: http.SameSiteStrictMode,
+		}
+		http.SetCookie(w, &cookie)
 		w.WriteHeader(http.StatusOK)
 	}
 }

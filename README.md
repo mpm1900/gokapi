@@ -9,4 +9,5 @@ features include:
 - local->docker Go refreshing with Air
 - HTTPS
 - local volume for vite builds
-- bun for JS builds and install runtime
+- bun for JS builds and install runtime (React/Shadcn)
+- automacic SQLc type-safe mappings for all database opperations
