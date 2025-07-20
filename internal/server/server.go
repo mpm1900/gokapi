@@ -22,6 +22,7 @@ func NewServer(ctx context.Context, queries *db.Queries, mux *http.ServeMux) *Se
 		return nil
 	}
 
+	mux.Handle("POST /auth/signup", handleSignUp(ctx, queries))
 	mux.Handle("GET /", staticHandler)
 
 	mux.HandleFunc("GET /users/{name}", func(w http.ResponseWriter, r *http.Request) {

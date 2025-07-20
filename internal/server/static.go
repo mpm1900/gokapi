@@ -33,7 +33,9 @@ func (h *StaticHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if os.IsNotExist(err) || (err == nil && fileInfo.IsDir()) {
 		http.ServeFile(w, r, h.indexPath)
 		return
-	} else if err != nil {
+	}
+
+	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}

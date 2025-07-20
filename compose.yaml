@@ -49,6 +49,7 @@ services:
     volumes:
       - .:/server
       - ./certs:/server/certs
+      - ./web/dist:/server/web/dist # Mount local web/dist for development
     depends_on:
       - migrations
 
