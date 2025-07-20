@@ -7,21 +7,50 @@ package db
 
 import (
 	"context"
+
+	"github.com/google/uuid"
 )
 
 const createUser = `-- name: CreateUser :one
-INSERT INTO users (name) VALUES ($1) RETURNING id, name
+INSERT INTO users (email, password) VALUES ($1, $2) RETURNING id, email, password
 `
 
-func (q *Queries) CreateUser(ctx context.Context, name string) (User, error) {
-	row := q.db.QueryRow(ctx, createUser, name)
+type CreateUserParams struct {
+	Email    string `json:"email"`
+	Password string `json:"password"`
+}
+
+func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, error) {
+	row := q.db.QueryRow(ctx, createUser, arg.Email, arg.Password)
 	var i User
-	err := row.Scan(&i.ID, &i.Name)
+	err := row.Scan(&i.ID, &i.Email, &i.Password)
+	return i, err
+}
+
+const getUserByEmail = `-- name: GetUserByEmail :one
+SELECT id, email, password FROM users WHERE email = $1
+`
+
+func (q *Queries) GetUserByEmail(ctx context.Context, email string) (User, error) {
+	row := q.db.QueryRow(ctx, getUserByEmail, email)
+	var i User
+	err := row.Scan(&i.ID, &i.Email, &i.Password)
+	return i, err
+}
+
+const getUserByID = `-- name: GetUserByID :one
+SELECT id, email, password FROM users WHERE id = $1
+`
+
+func (q *Queries) GetUserByID(ctx context.Context, id uuid.UUID) (User, error) {
+	row := q.db.QueryRow(ctx, getUserByID, id)
+	var i User
+	err := row.Scan(&i.ID, &i.Email, &i.Password)
 	return i, err
 }
 
 const getUsers = `-- name: GetUsers :many
-SELECT id, name FROM users
+SELECT id, email, password FROM users
 `
 
 func (q *Queries) GetUsers(ctx context.Context) ([]User, error) {
@@ -33,7 +62,7 @@ func (q *Queries) GetUsers(ctx context.Context) ([]User, error) {
 	items := []User{}
 	for rows.Next() {
 		var i User
-		if err := rows.Scan(&i.ID, &i.Name); err != nil {
+		if err := rows.Scan(&i.ID, &i.Email, &i.Password); err != nil {
 			return nil, err
 		}
 		items = append(items, i)

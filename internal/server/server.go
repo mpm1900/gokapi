@@ -25,17 +25,6 @@ func NewServer(ctx context.Context, queries *db.Queries, mux *http.ServeMux) *Se
 	mux.Handle("POST /auth/signup", handleSignUp(ctx, queries))
 	mux.Handle("GET /", staticHandler)
 
-	mux.HandleFunc("GET /users/{name}", func(w http.ResponseWriter, r *http.Request) {
-		name := r.PathValue("name")
-		user, err := queries.CreateUser(ctx, name)
-		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-			return
-		}
-		w.WriteHeader(http.StatusCreated)
-		w.Write([]byte(user.Name))
-	})
-
 	return &Server{
 		Server: &http.Server{
 			Addr:    addr,
