@@ -7,22 +7,44 @@ import (
 )
 
 type StaticHandler struct {
-	Path  string
-	Entry string
+	fs        http.Handler
+	staticDir string
+	indexPath string
 }
 
-func (h *StaticHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	path := filepath.Join(h.Path, r.URL.Path)
-	file, err := os.Stat(path)
-
-	if os.IsNotExist(err) || file.IsDir() {
-		path = filepath.Join(h.Path, h.Entry)
+func NewStaticHandler(staticPath, entryFile string) *StaticHandler {
+	absStaticPath, err := filepath.Abs(staticPath)
+	if err != nil {
+		// This error should ideally be handled at a higher level or logged
+		// For now, we'll return a handler that always errors
+		return &StaticHandler{
+			fs: http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				http.Error(w, "Internal server error: static path not resolved", http.StatusInternalServerError)
+			}),
+			staticDir: "",
+			indexPath: "",
+		}
 	}
 
-	if err != nil {
+	return &StaticHandler{
+		fs:        http.FileServer(http.Dir(absStaticPath)),
+		staticDir: absStaticPath,
+		indexPath: filepath.Join(absStaticPath, entryFile),
+	}
+}
+
+func (h StaticHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	requestedAbsPath := filepath.Join(h.staticDir, r.URL.Path)
+
+	fileInfo, err := os.Stat(requestedAbsPath)
+
+	if os.IsNotExist(err) || (err == nil && fileInfo.IsDir()) {
+		http.ServeFile(w, r, h.indexPath)
+		return
+	} else if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	http.ServeFile(w, r, path)
+	h.fs.ServeHTTP(w, r)
 }

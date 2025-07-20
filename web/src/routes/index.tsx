@@ -5,5 +5,5 @@ export const Route = createFileRoute('/')({
 })
 
 function App() {
-  return <div>Hello From Vite</div>
+  return <div>Hello From Vite 2.0!</div>
 }
