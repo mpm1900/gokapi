@@ -11,3 +11,4 @@ features include:
 - local volume for vite builds
 - bun for JS builds and install runtime (React/Shadcn)
 - automacic SQLc type-safe mappings for all database opperations
+- protected client-side routes
