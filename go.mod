@@ -3,6 +3,7 @@ module github.com/mpm1900/gokapi
 go 1.24.5
 
 require (
+	github.com/golang-jwt/jwt/v5 v5.2.3
 	github.com/google/uuid v1.6.0
 	github.com/jackc/pgx/v5 v5.7.5
 	github.com/pressly/goose/v3 v3.24.3

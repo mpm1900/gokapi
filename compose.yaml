@@ -40,6 +40,7 @@ services:
       POSTGRES_HOST: db
       CERT_FILE: ./certs/server.crt
       KEY_FILE: ./certs/server.key
+      JWT_SECRET: peepeepoopoo
 
     ports:
       - "3005:8080"
