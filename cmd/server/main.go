@@ -14,18 +14,23 @@ import (
 	"github.com/mpm1900/gokapi/internal/server"
 )
 
-var addr = flag.String("addr", ":8080", "http service address")
-
 func main() {
 	flag.Parse()
 	logger := slog.Default()
 	ctx := context.Background()
 
+	certFile := os.Getenv("CERT_FILE")
+	keyFile := os.Getenv("KEY_FILE")
 	pgdb := os.Getenv("POSTGRES_DB")
 	pguser := os.Getenv("POSTGRES_USER")
 	pgpass := os.Getenv("POSTGRES_PASSWORD")
 	pghost := os.Getenv("POSTGRES_HOST")
 
+	addr := ":8443"
+	if certFile == "" || keyFile == "" {
+		logger.Error("Both CERT_FILE and KEY_FILE are not set, HTTPS is not supported")
+		os.Exit(1)
+	}
 	connStr := fmt.Sprintf("user=%s password=%s dbname=%s host=%s", pguser, pgpass, pgdb, pghost)
 	pool, err := pgxpool.New(ctx, connStr)
 	if err != nil {
@@ -38,6 +43,11 @@ func main() {
 	mux := http.NewServeMux()
 	s := server.NewServer(context.WithValue(ctx, "addr", addr), queries, mux)
 
-	logger.Info("Starting server", "addr", *addr)
-	s.ListenAndServe()
+	logger.Info("Starting HTTPS server", "addr", addr)
+	err = s.ListenAndServeTLS(certFile, keyFile)
+
+	if err != nil && err != http.ErrServerClosed {
+		logger.Error("Server failed", "err", err)
+		os.Exit(1)
+	}
 }

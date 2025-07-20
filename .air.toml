@@ -1,5 +1,5 @@
 root = "."
-working_dir = "/app"
+working_dir = "/server"
 
 [build]
 cmd = "make build-server"
@@ -8,6 +8,9 @@ bin = "bin/server"
 include_ext = ["go", "tpl", "tmpl", "html", "css"]
 include_file = ["Makefile"]
 exclude_dir = ["assets", "tmp", "vendor", "bin", "web"]
+
+[run]
+cmd = "make run-server"
 
 [log]
 time = true

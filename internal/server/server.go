@@ -13,9 +13,8 @@ type Server struct {
 }
 
 func NewServer(ctx context.Context, queries *db.Queries, mux *http.ServeMux) *Server {
-	addr := ctx.Value("addr").(*string)
+	addr := ctx.Value("addr").(string)
 	logger := slog.Default()
-	logger.Info("Creating server", "addr", *addr)
 
 	staticHandler, err := NewStaticHandler("./web/dist", "index.html")
 	if err != nil {
@@ -26,11 +25,9 @@ func NewServer(ctx context.Context, queries *db.Queries, mux *http.ServeMux) *Se
 	mux.Handle("GET /", staticHandler)
 
 	mux.HandleFunc("GET /users/{name}", func(w http.ResponseWriter, r *http.Request) {
-		// logger.Info("Request received", "url", r.URL.Path)
 		name := r.PathValue("name")
 		user, err := queries.CreateUser(ctx, name)
 		if err != nil {
-			// logger.Error("Error creating user", "err", err)
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
@@ -40,7 +37,7 @@ func NewServer(ctx context.Context, queries *db.Queries, mux *http.ServeMux) *Se
 
 	return &Server{
 		Server: &http.Server{
-			Addr:    *addr,
+			Addr:    addr,
 			Handler: mux,
 		},
 	}

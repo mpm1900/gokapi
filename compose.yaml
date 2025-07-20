@@ -13,6 +13,7 @@ services:
       - fullstack
 
   migrations:
+    working_dir: /server
     build:
       context: .
       dockerfile: Dockerfile
@@ -23,12 +24,13 @@ services:
     networks:
       - fullstack
     volumes:
-      - .:/app
+      - .:/server
     depends_on:
       - db
     command: ["make", "exec-migrations"]
 
   server:
+    working_dir: /server
     build:
       context: .
       dockerfile: Dockerfile
@@ -36,13 +38,17 @@ services:
     environment:
       <<: *postgres_env
       POSTGRES_HOST: db
+      CERT_FILE: ./certs/server.crt
+      KEY_FILE: ./certs/server.key
 
     ports:
       - "3005:8080"
+      - "8443:8443"
     networks:
       - fullstack
     volumes:
-      - .:/app
+      - .:/server
+      - ./certs:/server/certs
     depends_on:
       - migrations
 

@@ -22,13 +22,12 @@ RUN go mod download
 COPY ./cmd ./cmd
 COPY ./database ./database
 COPY ./internal ./internal
+COPY ./certs ./certs
 
 RUN mkdir -p ./web
 COPY --from=bun /web/dist /server/web/dist
 
-# RUN make build-server
-
-EXPOSE 8080
+EXPOSE 8443
 
 CMD ["air", "-c", ".air.toml"]
-# CMD ["/server/bin/server"]
+# CMD ["/server/bin/server"] # for production, do not uncomment
