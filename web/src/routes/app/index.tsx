@@ -13,6 +13,7 @@ function RouteComponent() {
   const user = useUser()
   const logOut = useLogOut()
   const navigate = Route.useNavigate()
+
   return (
     <div className="flex flex-col gap-6">
       <div>Hello "/app/"! {JSON.stringify(user)}</div>
