@@ -17,7 +17,11 @@ func NewServer(ctx context.Context, queries *db.Queries, mux *http.ServeMux) *Se
 	logger := slog.Default()
 	logger.Info("Creating server", "addr", *addr)
 
-	staticHandler := NewStaticHandler("./web/dist", "index.html")
+	staticHandler, err := NewStaticHandler("./web/dist", "index.html")
+	if err != nil {
+		logger.Error("Error creating static handler", "err", err)
+		return nil
+	}
 
 	mux.Handle("GET /", staticHandler)
 

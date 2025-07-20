@@ -8,6 +8,7 @@ import { routeTree } from './routeTree.gen'
 
 import './styles.css'
 import reportWebVitals from './reportWebVitals.ts'
+import { ThemeProvider } from './components/theme-provider.tsx'
 
 const router = createRouter({
   routeTree,
@@ -31,9 +32,11 @@ if (rootElement && !rootElement.innerHTML) {
   const root = ReactDOM.createRoot(rootElement)
   root.render(
     <StrictMode>
-      <TanStackQueryProvider.Provider>
-        <RouterProvider router={router} />
-      </TanStackQueryProvider.Provider>
+      <ThemeProvider defaultTheme="dark">
+        <TanStackQueryProvider.Provider>
+          <RouterProvider router={router} />
+        </TanStackQueryProvider.Provider>
+      </ThemeProvider>
     </StrictMode>,
   )
 }
