@@ -3,6 +3,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { useLogIn } from '@/hooks/mutations/use-login'
 import { useSignUp } from '@/hooks/mutations/use-signup'
 import { cn } from '@/lib/utils'
 import { createFileRoute } from '@tanstack/react-router'
@@ -22,6 +23,7 @@ export const Route = createFileRoute('/')({
 
 function App() {
   const signUp = useSignUp()
+  const logIn = useLogIn()
 
   return (
     <div className="bg-muted flex min-h-svh w-full items-center justify-center p-6 md:p-10">
@@ -38,7 +40,7 @@ function App() {
         <div className={cn('flex flex-col gap-3')}>
           <Card>
             <CardContent>
-              <Tabs defaultValue="signup" className="flex flex-col gap-6">
+              <Tabs defaultValue="login" className="flex flex-col gap-6">
                 <TabsList className="flex flex-row gap-2 self-center">
                   <TabsTrigger value="login">Login</TabsTrigger>
                   <TabsTrigger value="signup">Sign up</TabsTrigger>
@@ -92,7 +94,7 @@ function App() {
                     onSubmit={(e: React.FormEvent<FormElement>) => {
                       e.preventDefault()
                       const elements = e.currentTarget.elements
-                      signUp.mutate({
+                      logIn.mutate({
                         email: elements.email.value,
                         password: elements.password.value,
                       })
