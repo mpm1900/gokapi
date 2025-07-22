@@ -2,7 +2,7 @@ import { instance } from '@/integrations/axios/instance'
 import { useQuery } from '@tanstack/react-query'
 
 export async function getAuthUser() {
-  return await instance.post('/api/auth/me')
+  return await instance.get('/api/auth/me')
 }
 
 export function useAuthUser() {
