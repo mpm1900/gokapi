@@ -7,7 +7,7 @@ import { useLogIn } from '@/hooks/mutations/use-login'
 import { useSignUp } from '@/hooks/mutations/use-signup'
 import { cn } from '@/lib/utils'
 import { createFileRoute } from '@tanstack/react-router'
-import { PiSquareIcon } from 'lucide-react'
+import { Loader, Loader2, PiSquareIcon } from 'lucide-react'
 import { toast } from 'sonner'
 
 export const Route = createFileRoute('/login')({
@@ -67,7 +67,6 @@ function RouteComponent() {
                           },
                         },
                       )
-                      e.currentTarget.reset()
                     }}
                   >
                     <div className="flex flex-col gap-6">
@@ -122,7 +121,6 @@ function RouteComponent() {
                           },
                         },
                       )
-                      e.currentTarget.reset()
                     }}
                   >
                     <div className="flex flex-col gap-6">
@@ -150,8 +148,16 @@ function RouteComponent() {
                         />
                       </div>
                       <div className="flex flex-col">
-                        <Button type="submit" className="w-full">
-                          Log In
+                        <Button
+                          type="submit"
+                          className="w-full"
+                          disabled={logIn.isPending}
+                        >
+                          {logIn.isPending ? (
+                            <Loader2 className="animate-spin" />
+                          ) : (
+                            'Log In'
+                          )}
                         </Button>
                       </div>
                     </div>
