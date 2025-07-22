@@ -25,6 +25,10 @@ func WithJWT(next http.HandlerFunc) http.HandlerFunc {
 			w.WriteHeader(http.StatusUnauthorized)
 			return
 		}
+		if err := ValidateJWTClaims(jwt); err != nil {
+			w.WriteHeader(http.StatusUnauthorized)
+			return
+		}
 
 		next(w, r.Clone(context.WithValue(r.Context(), "jwt", jwt)))
 	}
@@ -50,16 +54,62 @@ func ParseJWT(tokenString string) (jwt.MapClaims, error) {
 	return claims, nil
 }
 
+func ValidateJWTClaims(claims jwt.MapClaims) error {
+	return jwt.NewValidator().Validate(claims)
+}
+
 func CreateJWT(user *db.User) (string, error) {
 	secret := []byte(os.Getenv("JWT_SECRET"))
+	exp := time.Now().Add(time.Minute * 5).Unix()
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"id":    user.ID,
 		"email": user.Email,
-		"exp":   time.Now().Add(time.Hour * 24 * 365).Unix(),
+		"exp":   exp,
 	})
 	tokenString, err := token.SignedString(secret)
 	if err != nil {
 		return "", err
 	}
 	return tokenString, nil
+}
+
+func newJwtCookie(token string, exp int64) *http.Cookie {
+	return &http.Cookie{
+		Name:     "jwt",
+		Value:    token,
+		MaxAge:   int(exp - time.Now().Unix()),
+		HttpOnly: true,
+		Secure:   true,
+		SameSite: http.SameSiteStrictMode,
+	}
+}
+
+func RefreshJWT(claims jwt.MapClaims) (*http.Cookie, error) {
+	secret := []byte(os.Getenv("JWT_SECRET"))
+	exp := time.Now().Add(time.Minute * 5).Unix()
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+		"id":    claims["id"],
+		"email": claims["email"],
+		"exp":   exp,
+	})
+	jwt, err := token.SignedString(secret)
+	if err != nil {
+		return nil, err
+	}
+
+	cookie := newJwtCookie(jwt, exp)
+
+	return cookie, nil
+}
+
+func CreateJWTCookie(user *db.User) (*http.Cookie, error) {
+	jwt, err := CreateJWT(user)
+	if err != nil {
+		return nil, err
+	}
+	exp := time.Now().Add(time.Minute * 5).Unix()
+	cookie := newJwtCookie(jwt, exp)
+
+	return cookie, nil
 }

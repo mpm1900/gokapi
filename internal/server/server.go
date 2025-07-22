@@ -24,7 +24,7 @@ func NewServer(ctx context.Context, queries *db.Queries, mux *http.ServeMux) *Se
 	}
 
 	api := http.NewServeMux()
-	api.Handle("GET /auth/me", auth.WithJWT(handleMe(ctx)))
+	api.Handle("POST /auth/me", auth.WithJWT(handleMe(ctx)))
 	api.Handle("POST /auth/signup", handleSignUp(ctx, queries))
 	api.Handle("POST /auth/login", handleLogin(ctx, queries))
 	api.Handle("POST /auth/logout", handleLogout(ctx))

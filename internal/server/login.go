@@ -5,7 +5,6 @@ import (
 	"database/sql"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"io"
 	"log/slog"
 	"net/http"
@@ -40,7 +39,7 @@ func getAuthBody(r *http.Request) (*body, error) {
 func getAuthUser(ctx context.Context, queries *db.Queries, body *body) (*db.User, bool, error) {
 	user, err := queries.GetUserByEmail(ctx, body.Email)
 	if err != nil {
-		if !errors.Is(err, sql.ErrNoRows) {
+		if errors.Is(err, sql.ErrNoRows) {
 			return nil, false, nil
 		}
 
@@ -84,7 +83,7 @@ func handleSignUp(ctx context.Context, queries *db.Queries) http.HandlerFunc {
 		}
 
 		if ok {
-			fmt.Println("User already exists", user)
+			logger.Error("User already exists", "user", user.Email)
 			w.WriteHeader(http.StatusConflict)
 			return
 		}
@@ -96,8 +95,14 @@ func handleSignUp(ctx context.Context, queries *db.Queries) http.HandlerFunc {
 			return
 		}
 
+		cookie, err := auth.CreateJWTCookie(dbuser)
+		if err != nil {
+			logger.Error("Error creating JWT", "err", err)
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+		http.SetCookie(w, cookie)
 		w.WriteHeader(http.StatusOK)
-		fmt.Println(dbuser.Email, dbuser.Password)
 	}
 }
 
@@ -126,21 +131,13 @@ func handleLogin(ctx context.Context, queries *db.Queries) http.HandlerFunc {
 			return
 		}
 
-		token, err := auth.CreateJWT(user)
+		cookie, err := auth.CreateJWTCookie(user)
 		if err != nil {
 			logger.Error("Error creating JWT", "err", err)
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
-		newJWT := http.Cookie{
-			Name:     "jwt",
-			Value:    token,
-			MaxAge:   60 * 60 * 24 * 365 * 100,
-			HttpOnly: true,
-			Secure:   true,
-			SameSite: http.SameSiteStrictMode,
-		}
-		http.SetCookie(w, &newJWT)
+		http.SetCookie(w, cookie)
 		w.WriteHeader(http.StatusOK)
 	}
 }
@@ -163,10 +160,15 @@ func handleLogout(ctx context.Context) http.HandlerFunc {
 // GET /auth/m
 func handleMe(ctx context.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		fmt.Println("ME", r)
 		jwt := r.Context().Value("jwt").(jwt.MapClaims)
-		fmt.Println("SUCCESS:", jwt)
+		cookie, err := auth.RefreshJWT(jwt)
+		if err != nil {
+			slog.Default().Error("Error refreshing JWT", "err", err)
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
 		w.Header().Set("Content-Type", "application/json")
+		http.SetCookie(w, cookie)
 		w.WriteHeader(http.StatusOK)
 		json.NewEncoder(w).Encode(jwt)
 	}
