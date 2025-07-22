@@ -1,5 +1,3 @@
-import { Button } from '@/components/ui/button'
-import { useLogOut } from '@/hooks/mutations/use-logout'
 import { useUser } from '@/hooks/use-user'
 import { authGuard } from '@/lib/auth'
 import { createFileRoute } from '@tanstack/react-router'
@@ -11,23 +9,16 @@ export const Route = createFileRoute('/app/')({
 
 function RouteComponent() {
   const user = useUser()
-  const logOut = useLogOut()
-  const navigate = Route.useNavigate()
 
   return (
-    <div className="flex flex-col gap-6">
-      <div>Hello "/app/"! asdfasdf asdf {user?.email}</div>
-      <Button
-        onClick={() =>
-          logOut.mutate(undefined, {
-            onSuccess() {
-              navigate({ to: '/login' })
-            },
-          })
-        }
-      >
-        Log Out
-      </Button>
+    <div className="flex flex-1 flex-col">
+      <div className="@container/main flex flex-1 flex-col gap-2">
+        <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
+          <div className="px-4 lg:px-6 h-[7000px]">
+            <pre>{JSON.stringify(user, null, 2)}</pre>
+          </div>
+        </div>
+      </div>
     </div>
   )
 }

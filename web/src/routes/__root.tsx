@@ -10,13 +10,19 @@ interface MyRouterContext {
   queryClient: QueryClient
 }
 
+const DEV_TOOLS_ENABLED = false
+
 export const Route = createRootRouteWithContext<MyRouterContext>()({
   component: () => (
     <>
       <Outlet />
       <Toaster />
-      <TanStackRouterDevtools />
-      <TanStackQueryLayout />
+      {DEV_TOOLS_ENABLED && (
+        <>
+          <TanStackRouterDevtools />
+          <TanStackQueryLayout />
+        </>
+      )}
     </>
   ),
 })

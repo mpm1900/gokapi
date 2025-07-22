@@ -1,3 +1,5 @@
+import { AppSidebar } from '@/components/app-sidebar'
+import { PageLayout } from '@/components/page-layout'
 import { Outlet, createFileRoute } from '@tanstack/react-router'
 
 export const Route = createFileRoute('/app')({
@@ -6,12 +8,8 @@ export const Route = createFileRoute('/app')({
 
 function RouteComponent() {
   return (
-    <div>
-      <div>header</div>
-      <div>
-        <div>sidebar</div>
-        <Outlet />
-      </div>
-    </div>
+    <PageLayout sidebar={<AppSidebar variant="inset" />}>
+      <Outlet />
+    </PageLayout>
   )
 }
