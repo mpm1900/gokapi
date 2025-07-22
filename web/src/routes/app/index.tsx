@@ -16,7 +16,7 @@ function RouteComponent() {
 
   return (
     <div className="flex flex-col gap-6">
-      <div>Hello "/app/"! {user?.email}</div>
+      <div>Hello "/app/"! asdfasdf asdf {user?.email}</div>
       <Button
         onClick={() =>
           logOut.mutate(undefined, {

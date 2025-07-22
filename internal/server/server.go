@@ -23,11 +23,14 @@ func NewServer(ctx context.Context, queries *db.Queries, mux *http.ServeMux) *Se
 		return nil
 	}
 
-	mux.Handle("POST /auth/signup", handleSignUp(ctx, queries))
-	mux.Handle("POST /auth/login", handleLogin(ctx, queries))
-	mux.Handle("POST /auth/logout", handleLogout(ctx))
-	mux.Handle("GET /auth/me", auth.WithJWT(handleMe(ctx)))
-	mux.Handle("GET /", staticHandler)
+	api := http.NewServeMux()
+	api.Handle("GET /auth/me", auth.WithJWT(handleMe(ctx)))
+	api.Handle("POST /auth/signup", handleSignUp(ctx, queries))
+	api.Handle("POST /auth/login", handleLogin(ctx, queries))
+	api.Handle("POST /auth/logout", handleLogout(ctx))
+
+	mux.Handle("/api/", http.StripPrefix("/api", api))
+	mux.Handle("/", staticHandler)
 
 	return &Server{
 		Server: &http.Server{

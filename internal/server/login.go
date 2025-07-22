@@ -160,13 +160,14 @@ func handleLogout(ctx context.Context) http.HandlerFunc {
 	}
 }
 
-// GET /auth/me
+// GET /auth/m
 func handleMe(ctx context.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		fmt.Println("ME", r)
 		jwt := r.Context().Value("jwt").(jwt.MapClaims)
 		fmt.Println("SUCCESS:", jwt)
-		w.WriteHeader(http.StatusOK)
 		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
 		json.NewEncoder(w).Encode(jwt)
 	}
 }
