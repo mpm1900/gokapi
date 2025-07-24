@@ -15,6 +15,11 @@ import (
 	"github.com/mpm1900/gokapi/internal/db"
 )
 
+func getKey(token *jwt.Token) (any, error) {
+	secret := []byte(os.Getenv("JWT_SECRET"))
+	return secret, nil
+}
+
 func HashPassword(password string) (string, string, error) {
 	salt := uuid.New().String()
 	salted := fmt.Sprintf("%s$%s", password, salt)
@@ -52,11 +57,6 @@ func WithJWT(next http.HandlerFunc) http.HandlerFunc {
 	}
 }
 
-func getKey(token *jwt.Token) (any, error) {
-	secret := []byte(os.Getenv("JWT_SECRET"))
-	return secret, nil
-}
-
 func ParseJWT(tokenString string) (jwt.MapClaims, error) {
 	options := jwt.WithValidMethods([]string{jwt.SigningMethodHS256.Alg()})
 	token, err := jwt.Parse(tokenString, getKey, options)
@@ -91,7 +91,7 @@ func CreateJWT(user *db.User) (string, error) {
 	return tokenString, nil
 }
 
-func newJwtCookie(token string, exp int64) *http.Cookie {
+func NewJwtCookie(token string, exp int64) *http.Cookie {
 	return &http.Cookie{
 		Name:     "jwt",
 		Value:    token,
