@@ -50,7 +50,7 @@ func (s *Server) Run() error {
 	keyFile := os.Getenv("KEY_FILE")
 
 	if certFile == "" || keyFile == "" {
-		return errors.New("HTTPS is not supported")
+		return errors.New("HTTPS is not supported. Please add CERT_FILE and KEY_FILE to your .env file")
 	}
 	err := s.ListenAndServeTLS(certFile, keyFile)
 	if err != nil && err != http.ErrServerClosed {
