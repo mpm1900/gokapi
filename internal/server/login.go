@@ -5,14 +5,11 @@ import (
 	"database/sql"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"io"
 	"log/slog"
 	"net/http"
 
 	"github.com/golang-jwt/jwt/v5"
-	"github.com/google/uuid"
-	"golang.org/x/crypto/bcrypt"
 
 	"github.com/mpm1900/gokapi/internal/auth"
 	"github.com/mpm1900/gokapi/internal/db"
@@ -52,15 +49,13 @@ func getAuthUser(ctx context.Context, queries *db.Queries, body *body) (*db.User
 }
 
 func createAuthUser(ctx context.Context, queries *db.Queries, email, password string) (*db.User, error) {
-	salt := uuid.New().String()
-	salted := fmt.Sprintf("%s$%s", password, salt)
-	hashed, err := bcrypt.GenerateFromPassword([]byte(salted), bcrypt.DefaultCost)
+	hashed, salt, err := auth.HashPassword(password)
 	if err != nil {
 		return nil, err
 	}
 	user, err := queries.CreateUser(ctx, db.CreateUserParams{
 		Email:    email,
-		Password: string(hashed),
+		Password: hashed,
 		Salt:     salt,
 	})
 	if err != nil {
@@ -129,8 +124,7 @@ func handleLogin(ctx context.Context, queries *db.Queries) http.HandlerFunc {
 			return
 		}
 
-		salted := fmt.Sprintf("%s$%s", body.Password, user.Salt)
-		err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(salted))
+		err = auth.CheckPasswords(body.Password, user.Password, user.Salt)
 		if err != nil {
 			logger.Error("Error comparing passwords", "err", err)
 			w.WriteHeader(http.StatusInternalServerError)

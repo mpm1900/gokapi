@@ -3,14 +3,32 @@ package auth
 import (
 	"context"
 	"errors"
+	"fmt"
 	"net/http"
 	"os"
 	"time"
 
-	"github.com/mpm1900/gokapi/internal/db"
-
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/google/uuid"
+	"golang.org/x/crypto/bcrypt"
+
+	"github.com/mpm1900/gokapi/internal/db"
 )
+
+func HashPassword(password string) (string, string, error) {
+	salt := uuid.New().String()
+	salted := fmt.Sprintf("%s$%s", password, salt)
+	hashed, err := bcrypt.GenerateFromPassword([]byte(salted), bcrypt.DefaultCost)
+	if err != nil {
+		return "", "", err
+	}
+	return string(hashed), salt, nil
+}
+
+func CheckPasswords(a, b, salt string) error {
+	salted := fmt.Sprintf("%s$%s", a, salt)
+	return bcrypt.CompareHashAndPassword([]byte(b), []byte(salted))
+}
 
 func WithJWT(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
