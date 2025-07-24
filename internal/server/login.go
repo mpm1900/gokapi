@@ -2,9 +2,7 @@ package server
 
 import (
 	"context"
-	"database/sql"
 	"encoding/json"
-	"errors"
 	"io"
 	"log/slog"
 	"net/http"
@@ -35,35 +33,6 @@ func getAuthBody(r *http.Request) (*body, error) {
 	return &body, nil
 }
 
-func getAuthUser(ctx context.Context, queries *db.Queries, body *body) (*db.User, bool, error) {
-	user, err := queries.GetUserByEmail(ctx, body.Email)
-	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return nil, false, nil
-		}
-
-		return nil, false, err
-	}
-
-	return &user, true, err
-}
-
-func createAuthUser(ctx context.Context, queries *db.Queries, email, password string) (*db.User, error) {
-	hashed, salt, err := auth.HashPassword(password)
-	if err != nil {
-		return nil, err
-	}
-	user, err := queries.CreateUser(ctx, db.CreateUserParams{
-		Email:    email,
-		Password: hashed,
-		Salt:     salt,
-	})
-	if err != nil {
-		return nil, err
-	}
-	return &user, nil
-}
-
 // POST /auth/signup
 func handleSignUp(ctx context.Context, queries *db.Queries) http.HandlerFunc {
 	logger := slog.Default()
@@ -76,7 +45,7 @@ func handleSignUp(ctx context.Context, queries *db.Queries) http.HandlerFunc {
 			return
 		}
 
-		user, ok, err := getAuthUser(ctx, queries, body)
+		user, ok, err := auth.GetUser(ctx, queries, body.Email)
 		if err != nil {
 			logger.Error("Error finding user", "err", err)
 			w.WriteHeader(http.StatusInternalServerError)
@@ -88,7 +57,7 @@ func handleSignUp(ctx context.Context, queries *db.Queries) http.HandlerFunc {
 			w.WriteHeader(http.StatusConflict)
 			return
 		}
-		dbuser, err := createAuthUser(ctx, queries, body.Email, body.Password)
+		dbuser, err := auth.CreateUser(ctx, queries, body.Email, body.Password)
 		if err != nil {
 			logger.Error("Error creating user", "err", err)
 			w.WriteHeader(http.StatusInternalServerError)
@@ -117,7 +86,7 @@ func handleLogin(ctx context.Context, queries *db.Queries) http.HandlerFunc {
 			return
 		}
 
-		user, ok, err := getAuthUser(ctx, queries, body)
+		user, ok, err := auth.GetUser(ctx, queries, body.Email)
 		if !ok || err != nil {
 			logger.Error("Error finding user", "err", err)
 			w.WriteHeader(http.StatusInternalServerError)
@@ -171,5 +140,6 @@ func handleMe(ctx context.Context) http.HandlerFunc {
 		http.SetCookie(w, cookie)
 		w.WriteHeader(http.StatusOK)
 		json.NewEncoder(w).Encode(jwt)
+
 	}
 }
