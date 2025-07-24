@@ -5,11 +5,13 @@ import (
 	"database/sql"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
 	"log/slog"
 	"net/http"
 
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
 
 	"github.com/mpm1900/gokapi/internal/auth"
@@ -49,14 +51,17 @@ func getAuthUser(ctx context.Context, queries *db.Queries, body *body) (*db.User
 	return &user, true, err
 }
 
-func createAuthUser(ctx context.Context, queries *db.Queries, body *body) (*db.User, error) {
-	hash, err := bcrypt.GenerateFromPassword([]byte(body.Password), bcrypt.DefaultCost)
+func createAuthUser(ctx context.Context, queries *db.Queries, email, password string) (*db.User, error) {
+	salt := uuid.New().String()
+	salted := fmt.Sprintf("%s$%s", password, salt)
+	hashed, err := bcrypt.GenerateFromPassword([]byte(salted), bcrypt.DefaultCost)
 	if err != nil {
 		return nil, err
 	}
 	user, err := queries.CreateUser(ctx, db.CreateUserParams{
-		Email:    body.Email,
-		Password: string(hash),
+		Email:    email,
+		Password: string(hashed),
+		Salt:     salt,
 	})
 	if err != nil {
 		return nil, err
@@ -69,6 +74,7 @@ func handleSignUp(ctx context.Context, queries *db.Queries) http.HandlerFunc {
 	logger := slog.Default()
 	return func(w http.ResponseWriter, r *http.Request) {
 		body, err := getAuthBody(r)
+
 		if err != nil {
 			logger.Error("Error getting auth body", "err", err)
 			w.WriteHeader(http.StatusInternalServerError)
@@ -87,8 +93,7 @@ func handleSignUp(ctx context.Context, queries *db.Queries) http.HandlerFunc {
 			w.WriteHeader(http.StatusConflict)
 			return
 		}
-
-		dbuser, err := createAuthUser(ctx, queries, body)
+		dbuser, err := createAuthUser(ctx, queries, body.Email, body.Password)
 		if err != nil {
 			logger.Error("Error creating user", "err", err)
 			w.WriteHeader(http.StatusInternalServerError)
@@ -124,7 +129,8 @@ func handleLogin(ctx context.Context, queries *db.Queries) http.HandlerFunc {
 			return
 		}
 
-		err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(body.Password))
+		salted := fmt.Sprintf("%s$%s", body.Password, user.Salt)
+		err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(salted))
 		if err != nil {
 			logger.Error("Error comparing passwords", "err", err)
 			w.WriteHeader(http.StatusInternalServerError)

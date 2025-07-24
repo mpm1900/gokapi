@@ -7,7 +7,7 @@ import { useLogIn } from '@/hooks/mutations/use-login'
 import { useSignUp } from '@/hooks/mutations/use-signup'
 import { cn } from '@/lib/utils'
 import { createFileRoute } from '@tanstack/react-router'
-import { Loader, Loader2, PiSquareIcon } from 'lucide-react'
+import { Loader2, PiSquareIcon } from 'lucide-react'
 import { toast } from 'sonner'
 
 export const Route = createFileRoute('/login')({
