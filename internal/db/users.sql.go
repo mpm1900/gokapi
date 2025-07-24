@@ -12,7 +12,7 @@ import (
 )
 
 const createUser = `-- name: CreateUser :one
-INSERT INTO users (email, password, salt) VALUES ($1, $2, $3) RETURNING id, email, password, salt
+INSERT INTO users (email, password, salt) VALUES ($1, $2, $3) RETURNING id, email, password, salt, username
 `
 
 type CreateUserParams struct {
@@ -29,12 +29,13 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 		&i.Email,
 		&i.Password,
 		&i.Salt,
+		&i.Username,
 	)
 	return i, err
 }
 
 const getUserByEmail = `-- name: GetUserByEmail :one
-SELECT id, email, password, salt FROM users WHERE email = $1
+SELECT id, email, password, salt, username FROM users WHERE email = $1
 `
 
 func (q *Queries) GetUserByEmail(ctx context.Context, email string) (User, error) {
@@ -45,12 +46,13 @@ func (q *Queries) GetUserByEmail(ctx context.Context, email string) (User, error
 		&i.Email,
 		&i.Password,
 		&i.Salt,
+		&i.Username,
 	)
 	return i, err
 }
 
 const getUserByID = `-- name: GetUserByID :one
-SELECT id, email, password, salt FROM users WHERE id = $1
+SELECT id, email, password, salt, username FROM users WHERE id = $1
 `
 
 func (q *Queries) GetUserByID(ctx context.Context, id uuid.UUID) (User, error) {
@@ -61,12 +63,13 @@ func (q *Queries) GetUserByID(ctx context.Context, id uuid.UUID) (User, error) {
 		&i.Email,
 		&i.Password,
 		&i.Salt,
+		&i.Username,
 	)
 	return i, err
 }
 
 const getUsers = `-- name: GetUsers :many
-SELECT id, email, password, salt FROM users
+SELECT id, email, password, salt, username FROM users
 `
 
 func (q *Queries) GetUsers(ctx context.Context) ([]User, error) {
@@ -83,6 +86,7 @@ func (q *Queries) GetUsers(ctx context.Context) ([]User, error) {
 			&i.Email,
 			&i.Password,
 			&i.Salt,
+			&i.Username,
 		); err != nil {
 			return nil, err
 		}

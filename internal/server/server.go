@@ -2,8 +2,10 @@ package server
 
 import (
 	"context"
+	"errors"
 	"log/slog"
 	"net/http"
+	"os"
 
 	"github.com/mpm1900/gokapi/internal/auth"
 	"github.com/mpm1900/gokapi/internal/db"
@@ -11,10 +13,11 @@ import (
 
 type Server struct {
 	*http.Server
+	logger *slog.Logger
 }
 
-func NewServer(ctx context.Context, queries *db.Queries, mux *http.ServeMux) *Server {
-	addr := ctx.Value("addr").(string)
+func NewServer(ctx context.Context, queries *db.Queries) *Server {
+	addr := os.Getenv("PORT")
 	logger := slog.Default()
 
 	staticHandler, err := NewStaticHandler("./web/dist", "index.html")
@@ -23,6 +26,7 @@ func NewServer(ctx context.Context, queries *db.Queries, mux *http.ServeMux) *Se
 		return nil
 	}
 
+	mux := http.NewServeMux()
 	api := http.NewServeMux()
 	api.Handle("GET /auth/me", auth.WithJWT(handleMe(ctx)))
 	api.Handle("POST /auth/signup", handleSignUp(ctx, queries))
@@ -37,5 +41,20 @@ func NewServer(ctx context.Context, queries *db.Queries, mux *http.ServeMux) *Se
 			Addr:    addr,
 			Handler: mux,
 		},
+		logger: logger,
 	}
+}
+
+func (s *Server) Run() error {
+	certFile := os.Getenv("CERT_FILE")
+	keyFile := os.Getenv("KEY_FILE")
+
+	if certFile == "" || keyFile == "" {
+		return errors.New("HTTPS is not supported")
+	}
+	err := s.ListenAndServeTLS(certFile, keyFile)
+	if err != nil && err != http.ErrServerClosed {
+		return err
+	}
+	return nil
 }

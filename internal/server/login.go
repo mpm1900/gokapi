@@ -106,6 +106,8 @@ func handleLogin(ctx context.Context, queries *db.Queries) http.HandlerFunc {
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
+
+		logger.Info("User logged in", "user", user.Email)
 		http.SetCookie(w, cookie)
 		w.WriteHeader(http.StatusOK)
 	}

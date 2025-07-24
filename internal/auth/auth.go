@@ -116,7 +116,7 @@ func RefreshJWT(claims jwt.MapClaims) (*http.Cookie, error) {
 		return nil, err
 	}
 
-	cookie := newJwtCookie(jwt, exp)
+	cookie := NewJwtCookie(jwt, exp)
 
 	return cookie, nil
 }
@@ -127,7 +127,7 @@ func CreateJWTCookie(user *db.User) (*http.Cookie, error) {
 		return nil, err
 	}
 	exp := time.Now().Add(time.Minute * 5).Unix()
-	cookie := newJwtCookie(jwt, exp)
+	cookie := NewJwtCookie(jwt, exp)
 
 	return cookie, nil
 }
