@@ -3,8 +3,9 @@ FROM oven/bun:1.1.17 AS bun
 
 WORKDIR /web
 
-COPY ./web ./
+COPY ./web/package.json ./web/bun.lock ./
 RUN bun install --frozen-lockfile
+COPY ./web ./
 RUN bun run build
 
 # Go Build
