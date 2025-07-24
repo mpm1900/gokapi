@@ -1,32 +1,24 @@
-import { Button } from '@/components/ui/button'
+import { LogInForm } from '@/components/login/log-in-form'
+import { SignUpForm } from '@/components/login/sign-up-form'
 import { Card, CardContent } from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { useLogIn } from '@/hooks/mutations/use-login'
-import { useSignUp } from '@/hooks/mutations/use-signup'
 import { cn } from '@/lib/utils'
 import { createFileRoute } from '@tanstack/react-router'
-import { Loader2, PiSquareIcon } from 'lucide-react'
-import { toast } from 'sonner'
+import { PiSquareIcon } from 'lucide-react'
 
 export const Route = createFileRoute('/login')({
   component: RouteComponent,
 })
 
-type FormElements = HTMLFormControlsCollection & {
+export type FormElements = HTMLFormControlsCollection & {
   email: HTMLInputElement
   password: HTMLInputElement
 }
-type FormElement = HTMLFormElement & {
+export type FormElement = HTMLFormElement & {
   readonly elements: FormElements
 }
 
 function RouteComponent() {
-  const signUp = useSignUp()
-  const logIn = useLogIn()
-  const navigate = Route.useNavigate()
-
   return (
     <div className="flex min-h-svh w-full items-center justify-center p-6 md:p-10">
       <div className="w-full max-w-sm">
@@ -48,120 +40,10 @@ function RouteComponent() {
                   <TabsTrigger value="signup">Sign Up</TabsTrigger>
                 </TabsList>
                 <TabsContent value="signup">
-                  <form
-                    onSubmit={(e: React.FormEvent<FormElement>) => {
-                      e.preventDefault()
-                      const elements = e.currentTarget.elements
-                      signUp.mutate(
-                        {
-                          email: elements.email.value,
-                          password: elements.password.value,
-                        },
-                        {
-                          onError() {
-                            toast.error('There was an error signing up')
-                          },
-                          onSuccess() {
-                            toast.success('Successfully signed up!')
-                            navigate({ to: '/app' })
-                          },
-                        },
-                      )
-                    }}
-                  >
-                    <div className="flex flex-col gap-6">
-                      <div className="grid">
-                        <div className="flex items-center mb-3">
-                          <Label htmlFor="email">Email</Label>
-                        </div>
-                        <Input
-                          id="email"
-                          type="email"
-                          name="email"
-                          placeholder="m@example.com"
-                          required
-                        />
-                      </div>
-                      <div className="grid">
-                        <div className="flex items-center mb-3">
-                          <Label htmlFor="password">Password</Label>
-                        </div>
-                        <Input
-                          id="password"
-                          type="password"
-                          name="password"
-                          required
-                        />
-                      </div>
-                      <div className="flex flex-col">
-                        <Button type="submit" className="w-full">
-                          Sign Up
-                        </Button>
-                      </div>
-                    </div>
-                  </form>
-                </TabsContent>{' '}
+                  <SignUpForm />
+                </TabsContent>
                 <TabsContent value="login">
-                  <form
-                    onSubmit={(e: React.FormEvent<FormElement>) => {
-                      e.preventDefault()
-                      const elements = e.currentTarget.elements
-                      logIn.mutate(
-                        {
-                          email: elements.email.value,
-                          password: elements.password.value,
-                        },
-                        {
-                          onError() {
-                            toast.error('There was an error logging in')
-                          },
-                          onSuccess() {
-                            toast.success('Successfully logged in!')
-                            navigate({ to: '/app' })
-                          },
-                        },
-                      )
-                    }}
-                  >
-                    <div className="flex flex-col gap-6">
-                      <div className="grid">
-                        <div className="flex items-center mb-3">
-                          <Label htmlFor="email">Email</Label>
-                        </div>
-                        <Input
-                          id="email"
-                          type="email"
-                          name="email"
-                          placeholder="m@example.com"
-                          required
-                        />
-                      </div>
-                      <div className="grid">
-                        <div className="flex items-center mb-3">
-                          <Label htmlFor="password">Password</Label>
-                        </div>
-                        <Input
-                          id="password"
-                          type="password"
-                          name="password"
-                          required
-                        />
-                      </div>
-                      <div className="flex flex-col">
-                        <Button
-                          type="submit"
-                          className="w-full"
-                          disabled={logIn.isPending}
-                        >
-                          {logIn.isPending ? (
-                            <Loader2 className="animate-spin" />
-                          ) : (
-                            'Log In'
-                          )}
-                        </Button>
-                      </div>
-                    </div>
-                  </form>
+                  <LogInForm />
                 </TabsContent>
               </Tabs>
             </CardContent>
