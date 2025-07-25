@@ -21,6 +21,7 @@ import {
   DropdownMenuTrigger,
 } from './ui/dropdown-menu'
 import { Avatar, AvatarFallback } from './ui/avatar'
+import { useAuthUser } from '@/hooks/queries/use-auth-user'
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   return (
@@ -49,7 +50,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 }
 
 function AppSidebarUser() {
-  const user = useUser()
+  const { data: user } = useAuthUser()
   const logout = useLogOut()
   const { isMobile } = useSidebar()
   const navigate = useNavigate()

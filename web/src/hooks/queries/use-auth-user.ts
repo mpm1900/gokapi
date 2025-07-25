@@ -1,7 +1,7 @@
 import { instance } from '@/integrations/axios/instance'
 import { useQuery } from '@tanstack/react-query'
 import { redirect } from '@tanstack/react-router'
-import { userStore } from '../use-user'
+import { useUpdateUser } from '../use-user'
 
 export type GetAuthUserResponse = {
   id: string
@@ -14,7 +14,7 @@ export async function getAuthUser(): Promise<GetAuthUserResponse> {
 }
 
 export function useAuthUser() {
-  const set = userStore.getState().set
+  const set = useUpdateUser()
   return useQuery<GetAuthUserResponse | undefined>({
     queryKey: ['auth-me'],
     queryFn: async () => {

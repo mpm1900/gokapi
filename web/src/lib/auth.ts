@@ -11,7 +11,7 @@ type AuthGuardOptions = {
 export function authGuard({ onError, onSuccess }: AuthGuardOptions = {}) {
   return async function () {
     try {
-      const { data } = await getAuthUser()
+      const data = await getAuthUser()
       userStore.getState().set({
         id: data.id,
         email: data.email,

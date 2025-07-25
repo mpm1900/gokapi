@@ -20,3 +20,7 @@ export const userStore = create<UserStore>((set) => ({
 export function useUser() {
   return useStore(userStore, (s) => s.user)
 }
+
+export function useUpdateUser() {
+  return useStore(userStore, (s) => s.set)
+}
