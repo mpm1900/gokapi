@@ -1,11 +1,11 @@
 import { create, useStore } from 'zustand'
 
-type User = {
+export type User = {
   id: string
   email: string
 }
 
-type UserStore = {
+export type UserStore = {
   user: User | null
   set: (user: User) => void
   clear: () => void

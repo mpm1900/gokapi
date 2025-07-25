@@ -1,4 +1,4 @@
-import { EllipsisIcon, LogOutIcon, PiSquare } from 'lucide-react'
+import { EllipsisIcon, LogOutIcon, PiSquare, SettingsIcon } from 'lucide-react'
 import {
   Sidebar,
   SidebarContent,
@@ -10,7 +10,7 @@ import {
   useSidebar,
 } from './ui/sidebar'
 import { useLogOut } from '@/hooks/mutations/use-logout'
-import { useNavigate } from '@tanstack/react-router'
+import { Link, useNavigate } from '@tanstack/react-router'
 import { useUser } from '@/hooks/use-user'
 import {
   DropdownMenu,
@@ -32,10 +32,10 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               asChild
               className="data-[slot=sidebar-menu-button]:!p-1.5"
             >
-              <a href="#">
+              <Link to="/">
                 <PiSquare className="!size-5" />
                 <span className="text-base font-semibold">Gokapi</span>
-              </a>
+              </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
@@ -104,7 +104,16 @@ function AppSidebarUser() {
               </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
+            <DropdownMenuItem asChild>
+              <Link to="/app/user/settings" className="cursor-pointer">
+                <SettingsIcon />
+                Settings
+              </Link>
+            </DropdownMenuItem>
+
+            <DropdownMenuSeparator />
             <DropdownMenuItem
+              className="cursor-pointer"
               onClick={() =>
                 logout.mutate(undefined, {
                   onSuccess: () => navigate({ to: '/login' }),

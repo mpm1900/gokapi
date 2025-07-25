@@ -22,10 +22,7 @@ function RouteComponent() {
   return (
     <div className="flex min-h-svh w-full items-center justify-center p-6 md:p-10">
       <div className="w-full max-w-sm">
-        <a
-          href="#"
-          className="flex items-center justify-center gap-2 self-center font-medium p-4 mb-3"
-        >
+        <a className="flex items-center justify-center gap-2 self-center font-medium p-4 mb-3">
           <div className="bg-primary text-primary-foreground flex size-6 items-center justify-center rounded-md">
             <PiSquareIcon className="size-4" />
           </div>
