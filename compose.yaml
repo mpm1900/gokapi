@@ -27,7 +27,7 @@ services:
       - .:/server
     depends_on:
       - db
-    command: ["make", "exec-migrations"]
+    command: ["go", "run", "cmd/migrations/main.go"]
 
   server:
     working_dir: /server

@@ -15,9 +15,8 @@ WORKDIR /server
 
 COPY .air.toml ./
 RUN go install github.com/air-verse/air@latest
-RUN apk add --no-cache make
 
-COPY go.mod go.sum Makefile ./
+COPY go.mod go.sum ./
 RUN go mod download
 
 COPY ./cmd ./cmd
