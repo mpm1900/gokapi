@@ -1,5 +1,8 @@
+import { authGuard } from '@/lib/auth'
 import { createFileRoute, redirect } from '@tanstack/react-router'
 
 export const Route = createFileRoute('/')({
-  beforeLoad: () => redirect({ to: '/app' }),
+  beforeLoad: authGuard({
+    onSuccess: () => redirect({ to: '/app' }),
+  }),
 })
