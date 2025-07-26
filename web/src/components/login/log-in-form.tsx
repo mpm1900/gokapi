@@ -2,7 +2,7 @@ import { Button } from '../ui/button'
 import { Input } from '../ui/input'
 import { Label } from '../ui/label'
 import { toast } from 'sonner'
-import { useNavigate } from '@tanstack/react-router'
+import { useLocation, useNavigate } from '@tanstack/react-router'
 import type { FormElement } from '@/routes/login'
 import { Loader2 } from 'lucide-react'
 import { useLogIn } from '@/hooks/mutations/use-login'
@@ -10,6 +10,7 @@ import { useLogIn } from '@/hooks/mutations/use-login'
 export function LogInForm() {
   const logIn = useLogIn()
   const navigate = useNavigate()
+  const location = useLocation()
 
   function handleLogIn(e: React.FormEvent<FormElement>) {
     e.preventDefault()
@@ -25,6 +26,9 @@ export function LogInForm() {
         },
         onSuccess() {
           toast.success('Successfully logged in!')
+          if (location.search.redirect) {
+            return navigate({ href: location.search.redirect })
+          }
           navigate({ to: '/app' })
         },
       },

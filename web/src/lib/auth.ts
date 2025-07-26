@@ -13,21 +13,26 @@ type AuthGuardOptions = {
 export function authGuard({ onError, onSuccess }: AuthGuardOptions = {}) {
   return async function ({
     context,
+    navigate,
     ...options
   }: {
     context: { queryClient: QueryClient }
     preload: boolean
     navigate: NavigateFn
+    location: Location
   }) {
     try {
       await checkAuth({ queryClient: context.queryClient })
       return onSuccess?.()
     } catch (error) {
       onError?.()
-      if (options.preload) {
-        options.navigate({ to: '/login' })
-      }
-      throw logout({ queryClient: context.queryClient })
+
+      throw logout({
+        location,
+        navigate,
+        preload: options.preload,
+        queryClient: context.queryClient,
+      })
     }
   }
 }
@@ -41,8 +46,22 @@ export async function checkAuth({ queryClient }: { queryClient: QueryClient }) {
   })
 }
 
-export function logout({ queryClient }: { queryClient: QueryClient }) {
+export function logout({
+  location,
+  navigate,
+  preload,
+  queryClient,
+}: {
+  location: Location
+  navigate: NavigateFn
+  preload: boolean
+  queryClient: QueryClient
+}) {
   queryClient.removeQueries({ queryKey: [QUERY_KEYS.AUTH_ME] })
   userStore.getState().clear()
-  throw redirect({ to: '/login' })
+  if (preload) {
+    navigate({ to: '/login', search: { redirect: location.href } })
+  } else {
+    throw redirect({ to: '/login', search: { redirect: location.href } })
+  }
 }
