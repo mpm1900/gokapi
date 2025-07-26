@@ -3,7 +3,7 @@ import { authUserOptions } from '@/hooks/queries/use-auth-user'
 import { userStore } from '@/hooks/use-user'
 import type { QueryClient } from '@tanstack/react-query'
 
-import { redirect } from '@tanstack/react-router'
+import { redirect, type NavigateFn } from '@tanstack/react-router'
 
 type AuthGuardOptions = {
   onError?: () => void
@@ -13,14 +13,20 @@ type AuthGuardOptions = {
 export function authGuard({ onError, onSuccess }: AuthGuardOptions = {}) {
   return async function ({
     context,
+    ...options
   }: {
     context: { queryClient: QueryClient }
+    preload: boolean
+    navigate: NavigateFn
   }) {
     try {
       await checkAuth({ queryClient: context.queryClient })
       return onSuccess?.()
     } catch (error) {
       onError?.()
+      if (options.preload) {
+        options.navigate({ to: '/login' })
+      }
       throw logout({ queryClient: context.queryClient })
     }
   }
@@ -38,5 +44,5 @@ export async function checkAuth({ queryClient }: { queryClient: QueryClient }) {
 export function logout({ queryClient }: { queryClient: QueryClient }) {
   queryClient.removeQueries({ queryKey: [QUERY_KEYS.AUTH_ME] })
   userStore.getState().clear()
-  return redirect({ to: '/login' })
+  throw redirect({ to: '/login' })
 }
