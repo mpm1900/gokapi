@@ -5,6 +5,7 @@ import { Label } from '../ui/label'
 import { toast } from 'sonner'
 import { useNavigate } from '@tanstack/react-router'
 import type { FormElement } from '@/routes/login'
+import { Loader2 } from 'lucide-react'
 
 function SignUpForm() {
   const signUp = useSignUp()
@@ -59,7 +60,11 @@ function SignUpForm() {
         </div>
         <div className="flex flex-col">
           <Button type="submit" className="w-full">
-            Sign Up
+            {signUp.isPending ? (
+              <Loader2 className="animate-spin" />
+            ) : (
+              'Sign Up'
+            )}
           </Button>
         </div>
       </div>
