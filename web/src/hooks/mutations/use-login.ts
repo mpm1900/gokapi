@@ -1,5 +1,7 @@
 import { instance } from '@/integrations/axios/instance'
 import { useMutation } from '@tanstack/react-query'
+import { useUpdateUser } from '../use-user'
+import { MUTATION_KEYS } from './keys'
 
 type LoginRequest = {
   email: string
@@ -7,11 +9,12 @@ type LoginRequest = {
 }
 
 export function useLogIn() {
+  const set = useUpdateUser()
   return useMutation({
-    mutationKey: ['login'],
+    mutationKey: [MUTATION_KEYS.LOGIN],
     mutationFn: async (req: LoginRequest) => {
       const { data } = await instance.post('/api/auth/login', req)
-      console.log(data)
+      set({ id: data.id, email: data.email })
       return data
     },
   })

@@ -1,9 +1,7 @@
 import { useUser } from '@/hooks/use-user'
-import { authGuard } from '@/lib/auth'
 import { createFileRoute } from '@tanstack/react-router'
 
 export const Route = createFileRoute('/app/')({
-  loader: authGuard(),
   component: RouteComponent,
 })
 

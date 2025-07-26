@@ -108,8 +108,16 @@ func handleLogin(ctx context.Context, queries *db.Queries) http.HandlerFunc {
 		}
 
 		logger.Info("User logged in", "user", user.Email)
+		jwt, err := auth.ParseJWT(cookie.Value)
+		if err != nil {
+			logger.Error("Error parsing JWT", "err", err)
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+		w.Header().Set("Content-Type", "application/json")
 		http.SetCookie(w, cookie)
 		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode(jwt)
 	}
 }
 
@@ -142,6 +150,5 @@ func handleMe(ctx context.Context) http.HandlerFunc {
 		http.SetCookie(w, cookie)
 		w.WriteHeader(http.StatusOK)
 		json.NewEncoder(w).Encode(jwt)
-
 	}
 }
