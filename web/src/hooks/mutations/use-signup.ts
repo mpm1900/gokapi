@@ -12,7 +12,6 @@ export function useSignUp() {
     mutationKey: [MUTATION_KEYS.SIGNUP],
     mutationFn: async (req: SignUpRequest) => {
       const { data } = await instance.post('/api/auth/signup', req)
-      console.log(data)
       return data
     },
   })
