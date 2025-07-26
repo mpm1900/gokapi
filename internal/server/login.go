@@ -35,44 +35,37 @@ func getAuthBody(r *http.Request) (*body, error) {
 
 // POST /auth/signup
 func handleSignUp(ctx context.Context, queries *db.Queries) http.HandlerFunc {
-	logger := slog.Default()
 	return func(w http.ResponseWriter, r *http.Request) {
 		body, err := getAuthBody(r)
 
 		if err != nil {
-			logger.Error("Error getting auth body", "err", err)
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
 
-		user, ok, err := auth.GetUser(ctx, queries, body.Email)
+		_, ok, err := auth.GetUser(ctx, queries, body.Email)
 		if err != nil {
-			logger.Error("Error finding user", "err", err)
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
 
 		if ok {
-			logger.Error("User already exists", "user", user.Email)
 			w.WriteHeader(http.StatusConflict)
 			return
 		}
 		dbuser, err := auth.CreateUser(ctx, queries, body.Email, body.Password)
 		if err != nil {
-			logger.Error("Error creating user", "err", err)
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
 
 		cookie, err := auth.CreateJWTCookie(dbuser)
 		if err != nil {
-			logger.Error("Error creating JWT", "err", err)
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
 		jwt, err := auth.ParseJWT(cookie.Value)
 		if err != nil {
-			logger.Error("Error parsing JWT", "err", err)
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
@@ -89,28 +82,24 @@ func handleLogin(ctx context.Context, queries *db.Queries) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		body, err := getAuthBody(r)
 		if err != nil {
-			logger.Error("Error getting auth body", "err", err)
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
 
 		user, ok, err := auth.GetUser(ctx, queries, body.Email)
 		if !ok || err != nil {
-			logger.Error("Error finding user", "err", err)
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
 
 		err = auth.CheckPasswords(body.Password, user.Password, user.Salt)
 		if err != nil {
-			logger.Error("Error comparing passwords", "err", err)
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
 
 		cookie, err := auth.CreateJWTCookie(user)
 		if err != nil {
-			logger.Error("Error creating JWT", "err", err)
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
@@ -118,7 +107,6 @@ func handleLogin(ctx context.Context, queries *db.Queries) http.HandlerFunc {
 		logger.Info("User logged in", "user", user.Email)
 		jwt, err := auth.ParseJWT(cookie.Value)
 		if err != nil {
-			logger.Error("Error parsing JWT", "err", err)
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
@@ -130,8 +118,16 @@ func handleLogin(ctx context.Context, queries *db.Queries) http.HandlerFunc {
 }
 
 // POST /auth/logout
-func handleLogout(ctx context.Context) http.HandlerFunc {
+func handleLogout(ctx context.Context, queries *db.Queries) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		jwt := r.Context().Value("jwt").(jwt.MapClaims)
+
+		id, err := auth.GetUUIDFromJWTClaims(jwt)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+		queries.LogOutUser(ctx, id)
 		http.SetCookie(w, &http.Cookie{
 			Name:     "jwt",
 			Value:    "",
@@ -150,7 +146,6 @@ func handleMe(ctx context.Context) http.HandlerFunc {
 		jwt := r.Context().Value("jwt").(jwt.MapClaims)
 		cookie, err := auth.RefreshJWT(jwt)
 		if err != nil {
-			slog.Default().Error("Error refreshing JWT", "err", err)
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}

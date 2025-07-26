@@ -10,9 +10,10 @@ import (
 )
 
 type User struct {
-	ID       uuid.UUID   `json:"id"`
-	Email    string      `json:"email"`
-	Password string      `json:"password"`
-	Salt     string      `json:"salt"`
-	Username pgtype.Text `json:"username"`
+	ID         uuid.UUID   `json:"id"`
+	Email      string      `json:"email"`
+	Password   string      `json:"password"`
+	Salt       string      `json:"salt"`
+	JwtVersion int32       `json:"jwt_version"`
+	Username   pgtype.Text `json:"username"`
 }

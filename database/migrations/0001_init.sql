@@ -6,6 +6,7 @@ CREATE TABLE users (
     email VARCHAR(255) NOT NULL UNIQUE,
     password VARCHAR(255) NOT NULL,
     salt VARCHAR(255) NOT NULL,
+    jwt_version INTEGER NOT NULL DEFAULT 1,
     username VARCHAR(64)
 );
 

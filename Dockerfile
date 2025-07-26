@@ -1,12 +1,12 @@
-# Bun Build
-FROM oven/bun:1.1.17 AS bun
+# Node Build (for web)
+FROM node:lts-alpine AS web
 
 WORKDIR /web
 
-COPY ./web/package.json ./web/bun.lock ./
-RUN bun install --frozen-lockfile
+COPY ./web/package.json ./
+RUN npm install --omit=dev
 COPY ./web ./
-RUN bun run build
+RUN npm run build
 
 # Go Build
 FROM golang:1.24-alpine AS go
@@ -26,7 +26,7 @@ COPY ./internal ./internal
 COPY ./certs ./certs
 
 RUN mkdir -p ./web
-COPY --from=bun /web/dist /server/web/dist
+COPY --from=web /web/dist /server/web/dist
 
 EXPOSE 8443
 

@@ -35,7 +35,7 @@ func CheckPasswords(a, b, salt string) error {
 	return bcrypt.CompareHashAndPassword([]byte(b), []byte(salted))
 }
 
-func WithJWT(next http.HandlerFunc) http.HandlerFunc {
+func WithJWT(next http.HandlerFunc, queries *db.Queries) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		cookie, err := r.Cookie("jwt")
 		if err != nil {
@@ -43,17 +43,15 @@ func WithJWT(next http.HandlerFunc) http.HandlerFunc {
 			return
 		}
 
-		jwt, err := ParseJWT(cookie.Value)
+		jwt, err := ValidateJWT(cookie.Value, queries)
+
 		if err != nil {
 			w.WriteHeader(http.StatusUnauthorized)
 			return
 		}
-		if err := ValidateJWTClaims(jwt); err != nil {
-			w.WriteHeader(http.StatusUnauthorized)
-			return
-		}
 
-		next(w, r.Clone(context.WithValue(r.Context(), "jwt", jwt)))
+		ctxWithJWT := context.WithValue(r.Context(), "jwt", jwt)
+		next(w, r.Clone(ctxWithJWT))
 	}
 }
 
@@ -72,17 +70,60 @@ func ParseJWT(tokenString string) (jwt.MapClaims, error) {
 	return claims, nil
 }
 
+func GetUUIDFromJWTClaims(claims jwt.MapClaims) (uuid.UUID, error) {
+	id, ok := claims["id"].(string)
+	if !ok {
+		return uuid.Nil, errors.New("failed to parse id")
+	}
+	userID, err := uuid.Parse(id)
+	if err != nil {
+		return uuid.Nil, err
+	}
+	return userID, nil
+}
+
 func ValidateJWTClaims(claims jwt.MapClaims) error {
 	return jwt.NewValidator().Validate(claims)
+}
+
+func ValidateJWT(token string, queries *db.Queries) (jwt.MapClaims, error) {
+	claims, err := ParseJWT(token)
+	if err != nil {
+		return nil, err
+	}
+	if err := ValidateJWTClaims(claims); err != nil {
+		return nil, err
+	}
+
+	tokenJwtVersionFloat, ok := claims["jwt_version"].(float64)
+	if !ok {
+		return nil, errors.New("failed to parse jwt_version as float64")
+	}
+	tokenJwtVersion := int32(tokenJwtVersionFloat)
+
+	/* currently we are fetching the jwt_version from postgres, but
+	 * we should consider using redis or something down the line
+	 */
+	userID, err := uuid.Parse(claims["id"].(string))
+	dbJwtVersion, err := queries.GetUserJwtVersion(context.Background(), userID)
+	if err != nil {
+		return nil, err
+	}
+
+	if dbJwtVersion != tokenJwtVersion {
+		return nil, errors.New("jwt_version mismatch")
+	}
+	return claims, nil
 }
 
 func CreateJWT(user *db.User) (string, error) {
 	secret := []byte(os.Getenv("JWT_SECRET"))
 	exp := time.Now().Add(time.Minute * 5).Unix()
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"id":    user.ID,
-		"email": user.Email,
-		"exp":   exp,
+		"id":          user.ID,
+		"email":       user.Email,
+		"jwt_version": user.JwtVersion,
+		"exp":         exp,
 	})
 	tokenString, err := token.SignedString(secret)
 	if err != nil {
@@ -107,9 +148,10 @@ func RefreshJWT(claims jwt.MapClaims) (*http.Cookie, error) {
 	exp := time.Now().Add(time.Minute * 5).Unix()
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"id":    claims["id"],
-		"email": claims["email"],
-		"exp":   exp,
+		"id":          claims["id"],
+		"email":       claims["email"],
+		"jwt_version": claims["jwt_version"],
+		"exp":         exp,
 	})
 	jwt, err := token.SignedString(secret)
 	if err != nil {

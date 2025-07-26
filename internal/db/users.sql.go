@@ -12,7 +12,7 @@ import (
 )
 
 const createUser = `-- name: CreateUser :one
-INSERT INTO users (email, password, salt) VALUES ($1, $2, $3) RETURNING id, email, password, salt, username
+INSERT INTO users (email, password, salt) VALUES ($1, $2, $3) RETURNING id, email, password, salt, jwt_version, username
 `
 
 type CreateUserParams struct {
@@ -29,13 +29,14 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 		&i.Email,
 		&i.Password,
 		&i.Salt,
+		&i.JwtVersion,
 		&i.Username,
 	)
 	return i, err
 }
 
 const getUserByEmail = `-- name: GetUserByEmail :one
-SELECT id, email, password, salt, username FROM users WHERE email = $1
+SELECT id, email, password, salt, jwt_version, username FROM users WHERE email = $1
 `
 
 func (q *Queries) GetUserByEmail(ctx context.Context, email string) (User, error) {
@@ -46,13 +47,14 @@ func (q *Queries) GetUserByEmail(ctx context.Context, email string) (User, error
 		&i.Email,
 		&i.Password,
 		&i.Salt,
+		&i.JwtVersion,
 		&i.Username,
 	)
 	return i, err
 }
 
 const getUserByID = `-- name: GetUserByID :one
-SELECT id, email, password, salt, username FROM users WHERE id = $1
+SELECT id, email, password, salt, jwt_version, username FROM users WHERE id = $1
 `
 
 func (q *Queries) GetUserByID(ctx context.Context, id uuid.UUID) (User, error) {
@@ -63,13 +65,25 @@ func (q *Queries) GetUserByID(ctx context.Context, id uuid.UUID) (User, error) {
 		&i.Email,
 		&i.Password,
 		&i.Salt,
+		&i.JwtVersion,
 		&i.Username,
 	)
 	return i, err
 }
 
+const getUserJwtVersion = `-- name: GetUserJwtVersion :one
+SELECT jwt_version FROM users WHERE id = $1
+`
+
+func (q *Queries) GetUserJwtVersion(ctx context.Context, id uuid.UUID) (int32, error) {
+	row := q.db.QueryRow(ctx, getUserJwtVersion, id)
+	var jwt_version int32
+	err := row.Scan(&jwt_version)
+	return jwt_version, err
+}
+
 const getUsers = `-- name: GetUsers :many
-SELECT id, email, password, salt, username FROM users
+SELECT id, email, password, salt, jwt_version, username FROM users
 `
 
 func (q *Queries) GetUsers(ctx context.Context) ([]User, error) {
@@ -86,6 +100,7 @@ func (q *Queries) GetUsers(ctx context.Context) ([]User, error) {
 			&i.Email,
 			&i.Password,
 			&i.Salt,
+			&i.JwtVersion,
 			&i.Username,
 		); err != nil {
 			return nil, err
@@ -96,4 +111,13 @@ func (q *Queries) GetUsers(ctx context.Context) ([]User, error) {
 		return nil, err
 	}
 	return items, nil
+}
+
+const logOutUser = `-- name: LogOutUser :exec
+UPDATE users SET jwt_version = jwt_version + 1 WHERE id = $1
+`
+
+func (q *Queries) LogOutUser(ctx context.Context, id uuid.UUID) error {
+	_, err := q.db.Exec(ctx, logOutUser, id)
+	return err
 }
