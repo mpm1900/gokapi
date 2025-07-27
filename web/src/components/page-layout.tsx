@@ -10,7 +10,7 @@ export function PageLayout({
   return (
     <SidebarProvider>
       {sidebar}
-      <SidebarInset className="max-h-[calc(100svh-1rem)]">
+      <SidebarInset className="lg:max-h-[calc(100svh-1rem)]">
         {children}
       </SidebarInset>
     </SidebarProvider>
