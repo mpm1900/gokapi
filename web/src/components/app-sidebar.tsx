@@ -1,4 +1,16 @@
+import { useLogOut } from '@/hooks/mutations/use-logout'
+import { useUser } from '@/hooks/use-user'
+import { Link } from '@tanstack/react-router'
 import { EllipsisIcon, LogOutIcon, PiSquare, SettingsIcon } from 'lucide-react'
+import { Avatar, AvatarFallback } from './ui/avatar'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from './ui/dropdown-menu'
 import {
   Sidebar,
   SidebarContent,
@@ -9,18 +21,6 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from './ui/sidebar'
-import { useLogOut } from '@/hooks/mutations/use-logout'
-import { Link, useNavigate } from '@tanstack/react-router'
-import { useUser } from '@/hooks/use-user'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from './ui/dropdown-menu'
-import { Avatar, AvatarFallback } from './ui/avatar'
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   return (
@@ -52,7 +52,6 @@ function AppSidebarUser() {
   const user = useUser()
   const logout = useLogOut()
   const { isMobile } = useSidebar()
-  const navigate = useNavigate()
 
   if (!user) return null
 
@@ -114,11 +113,7 @@ function AppSidebarUser() {
             <DropdownMenuSeparator />
             <DropdownMenuItem
               className="cursor-pointer"
-              onClick={() =>
-                logout.mutate(undefined, {
-                  onSuccess: () => navigate({ to: '/login' }),
-                })
-              }
+              onClick={() => logout.mutate(undefined)}
             >
               <LogOutIcon />
               Logout
