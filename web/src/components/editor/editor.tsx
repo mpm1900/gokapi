@@ -19,9 +19,11 @@ function onError(error: any) {
 }
 
 function Editor({
+  className,
   value,
   onChange,
 }: {
+  className?: string
   value?: InitialEditorStateType
   onChange?: (
     editorState: EditorState,
@@ -40,7 +42,7 @@ function Editor({
 
   return (
     <LexicalComposer initialConfig={initialConfig}>
-      <div>
+      <div className={className}>
         <TextPlugin
           contentEditable={
             <ContentEditable
