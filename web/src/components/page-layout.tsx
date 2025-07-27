@@ -8,16 +8,11 @@ export function PageLayout({
   sidebar?: React.ReactNode
 }) {
   return (
-    <SidebarProvider
-      style={
-        {
-          '--sidebar-width': 'calc(var(--spacing) * 72)',
-          '--header-height': 'calc(var(--spacing) * 12)',
-        } as React.CSSProperties
-      }
-    >
+    <SidebarProvider>
       {sidebar}
-      <SidebarInset>{children}</SidebarInset>
+      <SidebarInset className="max-h-[calc(100svh-1rem)]">
+        {children}
+      </SidebarInset>
     </SidebarProvider>
   )
 }
