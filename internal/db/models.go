@@ -9,6 +9,14 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+type Prompt struct {
+	ID          uuid.UUID          `json:"id"`
+	UserID      uuid.UUID          `json:"user_id"`
+	EditorState pgtype.Text        `json:"editor_state"`
+	CreatedAt   pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt   pgtype.Timestamptz `json:"updated_at"`
+}
+
 type User struct {
 	ID         uuid.UUID   `json:"id"`
 	Email      string      `json:"email"`
