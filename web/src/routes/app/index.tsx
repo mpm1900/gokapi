@@ -12,20 +12,16 @@ function RouteComponent() {
     `{"root":{"children":[{"children":[{"detail":0,"format":0,"mode":"normal","style":"","text":"Hello World!","type":"text","version":1}],"direction":"ltr","format":"","indent":0,"type":"paragraph","version":1,"textFormat":0,"textStyle":""}],"direction":"ltr","format":"","indent":0,"type":"root","version":1}}`,
   )
   return (
-    <div className="flex flex-1 flex-col">
-      <div className="@container/main flex flex-1 flex-col gap-2">
-        <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
-          <div className="px-4 lg:px-6 grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <Editor
-              value={value}
-              onChange={(es) => {
-                setValue(es)
-              }}
-            />
-            <pre className="">{JSON.stringify(value, null, 2)}</pre>
-          </div>
-        </div>
-      </div>
+    <div className="@container/main p-4 lg:p-6 flex-1 grid grid-cols-1 lg:grid-cols-2 gap-6 max-h-[calc(100svh-8px)] overflow-hidden">
+      <Editor
+        value={value}
+        onChange={(es) => {
+          setValue(es)
+        }}
+      />
+      <pre className="max-h-full overflow-auto">
+        {JSON.stringify(value, null, 2)}
+      </pre>
     </div>
   )
 }
