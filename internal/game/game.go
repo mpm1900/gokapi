@@ -10,19 +10,19 @@ import (
 )
 
 type Instance struct {
-	ID      uuid.UUID `json:"id"`
-	ctx     context.Context
-	Clients map[uuid.UUID]*Client
-	State   State
+	ID      uuid.UUID             `json:"id"`
+	ctx     context.Context       `json:"-"`
+	Clients map[uuid.UUID]*Client `json:"-"`
+	State   State                 `json:"-"`
 
-	Register   chan *Client
-	Unregister chan *Client
-	Handle     chan Action
+	Register   chan *Client `json:"-"`
+	Unregister chan *Client `json:"-"`
+	Handle     chan Action  `json:"-"`
 }
 
-func NewInstance(ctx context.Context) *Instance {
+func NewInstance(ctx context.Context, id uuid.UUID) *Instance {
 	return &Instance{
-		ID:         uuid.New(),
+		ID:         id,
 		ctx:        ctx,
 		Clients:    make(map[uuid.UUID]*Client),
 		State:      State{},
@@ -47,7 +47,7 @@ func (i *Instance) BroadcastState() {
 	state := i.State
 	for _, client := range i.Clients {
 		select {
-		case client.next <- state:
+		case client.nextState <- state:
 		default:
 			i.UnregisterClient(client)
 		}
@@ -55,14 +55,14 @@ func (i *Instance) BroadcastState() {
 }
 
 func (i *Instance) SendState(client *Client) {
-	client.next <- i.State
+	client.nextState <- i.State
 }
 
 func (i *Instance) BroadcastClients() {
 	clients := slices.Collect(maps.Values(i.Clients))
 	for _, client := range i.Clients {
 		select {
-		case client.updateClients <- clients:
+		case client.nextClients <- clients:
 		default:
 			i.UnregisterClient(client)
 		}
@@ -74,12 +74,12 @@ func (i *Instance) Run() {
 	for {
 		select {
 		case client := <-i.Register:
-			fmt.Println("registering client")
+			fmt.Println("registering client", client.ID)
 			i.RegisterClient(client)
 			i.BroadcastClients()
 			i.SendState(client)
 		case client := <-i.Unregister:
-			fmt.Println("unregistering client")
+			fmt.Println("unregistering client", client.ID)
 			i.UnregisterClient(client)
 			i.BroadcastClients()
 		case action := <-i.Handle:

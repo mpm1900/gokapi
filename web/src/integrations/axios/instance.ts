@@ -1,7 +1,8 @@
 import axios from 'axios'
 
 export const instance = axios.create({
-  baseURL: ''
+  baseURL: '',
+  withCredentials: true
 })
 
 instance.interceptors.request.use((config) => {

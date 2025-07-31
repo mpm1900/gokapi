@@ -13,6 +13,7 @@ import { Route as LoginRouteImport } from './routes/login'
 import { Route as AppRouteImport } from './routes/app'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AppIndexRouteImport } from './routes/app/index'
+import { Route as AppGameIDRouteImport } from './routes/app/$gameID'
 import { Route as AppUserIndexRouteImport } from './routes/app/user/index'
 import { Route as AppUserSettingsRouteImport } from './routes/app/user/settings'
 
@@ -36,6 +37,11 @@ const AppIndexRoute = AppIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AppRoute,
 } as any)
+const AppGameIDRoute = AppGameIDRouteImport.update({
+  id: '/$gameID',
+  path: '/$gameID',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppUserIndexRoute = AppUserIndexRouteImport.update({
   id: '/user/',
   path: '/user/',
@@ -51,6 +57,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/app': typeof AppRouteWithChildren
   '/login': typeof LoginRoute
+  '/app/$gameID': typeof AppGameIDRoute
   '/app/': typeof AppIndexRoute
   '/app/user/settings': typeof AppUserSettingsRoute
   '/app/user': typeof AppUserIndexRoute
@@ -58,6 +65,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
+  '/app/$gameID': typeof AppGameIDRoute
   '/app': typeof AppIndexRoute
   '/app/user/settings': typeof AppUserSettingsRoute
   '/app/user': typeof AppUserIndexRoute
@@ -67,6 +75,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/app': typeof AppRouteWithChildren
   '/login': typeof LoginRoute
+  '/app/$gameID': typeof AppGameIDRoute
   '/app/': typeof AppIndexRoute
   '/app/user/settings': typeof AppUserSettingsRoute
   '/app/user/': typeof AppUserIndexRoute
@@ -77,16 +86,24 @@ export interface FileRouteTypes {
     | '/'
     | '/app'
     | '/login'
+    | '/app/$gameID'
     | '/app/'
     | '/app/user/settings'
     | '/app/user'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/login' | '/app' | '/app/user/settings' | '/app/user'
+  to:
+    | '/'
+    | '/login'
+    | '/app/$gameID'
+    | '/app'
+    | '/app/user/settings'
+    | '/app/user'
   id:
     | '__root__'
     | '/'
     | '/app'
     | '/login'
+    | '/app/$gameID'
     | '/app/'
     | '/app/user/settings'
     | '/app/user/'
@@ -128,6 +145,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppIndexRouteImport
       parentRoute: typeof AppRoute
     }
+    '/app/$gameID': {
+      id: '/app/$gameID'
+      path: '/$gameID'
+      fullPath: '/app/$gameID'
+      preLoaderRoute: typeof AppGameIDRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/app/user/': {
       id: '/app/user/'
       path: '/user'
@@ -146,12 +170,14 @@ declare module '@tanstack/react-router' {
 }
 
 interface AppRouteChildren {
+  AppGameIDRoute: typeof AppGameIDRoute
   AppIndexRoute: typeof AppIndexRoute
   AppUserSettingsRoute: typeof AppUserSettingsRoute
   AppUserIndexRoute: typeof AppUserIndexRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
+  AppGameIDRoute: AppGameIDRoute,
   AppIndexRoute: AppIndexRoute,
   AppUserSettingsRoute: AppUserSettingsRoute,
   AppUserIndexRoute: AppUserIndexRoute,

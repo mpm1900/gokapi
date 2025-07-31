@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"encoding/json"
 	"net/http"
 	"sync"
 
@@ -20,10 +21,16 @@ type GamesHandler struct {
 }
 
 func NewGamesHandler(ctx context.Context, queries *db.Queries) *GamesHandler {
+	gameID := uuid.New()
+	defaultInstance := game.NewInstance(ctx, gameID)
 	handler := &GamesHandler{
-		mux:   http.NewServeMux(),
-		games: make(map[uuid.UUID]*game.Instance),
+		mux: http.NewServeMux(),
+		games: map[uuid.UUID]*game.Instance{
+			gameID: defaultInstance,
+		},
 	}
+
+	go defaultInstance.Run()
 
 	handler.mux.HandleFunc("GET /{gameID}/connect", auth.WithJWT(handler.handleGameConnection(ctx, queries), queries))
 	return handler
@@ -33,15 +40,45 @@ func (gh *GamesHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	gh.mux.ServeHTTP(w, r)
 }
 
-func (gh *GamesHandler) newGameInstance(gameID uuid.UUID, ctx context.Context) *game.Instance {
-	instance := game.NewInstance(ctx)
-	instance.ID = gameID
+func (gh *GamesHandler) NewGameInstance(gameID uuid.UUID, ctx context.Context) *game.Instance {
+	instance := game.NewInstance(ctx, gameID)
 	gh.gamesMu.Lock()
 	gh.games[instance.ID] = instance
 	gh.gamesMu.Unlock()
 	go instance.Run()
 
 	return instance
+}
+
+func (gh *GamesHandler) GetGameInstance(gameID uuid.UUID) (*game.Instance, bool) {
+	gh.gamesMu.RLock()
+	defer gh.gamesMu.RUnlock()
+	instance, ok := gh.games[gameID]
+
+	return instance, ok
+}
+
+func (gh *GamesHandler) GetAllGameInstances() []game.Instance {
+	gh.gamesMu.RLock()
+	defer gh.gamesMu.RUnlock()
+	games := make([]game.Instance, 0, len(gh.games))
+	for _, instance := range gh.games {
+		games = append(games, *instance)
+	}
+	return games
+}
+
+func (gh *GamesHandler) HandleGetGames(w http.ResponseWriter, r *http.Request) {
+	games := gh.GetAllGameInstances()
+	if len(games) == 0 {
+		games = make([]game.Instance, 0)
+	}
+	w.Header().Set("Content-Type", "application/json")
+	err := json.NewEncoder(w).Encode(games)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
 }
 
 func (gh *GamesHandler) handleGameConnection(ctx context.Context, queries *db.Queries) http.HandlerFunc {
@@ -59,26 +96,26 @@ func (gh *GamesHandler) handleGameConnection(ctx context.Context, queries *db.Qu
 			return
 		}
 
-		user, err := queries.GetUserByID(ctx, userID)
-		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-			return
-		}
-
-		gh.gamesMu.RLock()
-		instance, ok := gh.games[gameID]
-		gh.gamesMu.RUnlock()
+		instance, ok := gh.GetGameInstance(gameID)
 		if !ok {
-			instance = gh.newGameInstance(gameID, ctx)
+			instance = gh.NewGameInstance(gameID, ctx)
 		}
 
-		client := game.NewClient(instance, &user)
-		if err := client.Connect(w, r); err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-			return
-		}
+		_, ok = instance.Clients[userID]
+		if !ok {
+			user, err := queries.GetUserByID(ctx, userID)
+			if err != nil {
+				w.WriteHeader(http.StatusInternalServerError)
+				return
+			}
 
-		client.Run()
+			client := game.NewClient(instance, &user)
+			if err := client.Connect(w, r); err != nil {
+				w.WriteHeader(http.StatusInternalServerError)
+				return
+			}
+
+			client.Run()
+		}
 	}
 }
-

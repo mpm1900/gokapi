@@ -1,9 +1,5 @@
+import type { User } from '@/types/user'
 import { create, useStore } from 'zustand'
-
-export type User = {
-  id: string
-  email: string
-}
 
 export type UserStore = {
   user: User | null

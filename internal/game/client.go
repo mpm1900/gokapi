@@ -32,26 +32,26 @@ var upgrader = websocket.Upgrader{
 }
 
 type Client struct {
-	ID            uuid.UUID `json:"id"`
-	User          *db.User  `json:"user"`
-	conn          *websocket.Conn
-	ctx           context.Context
-	cancel        context.CancelFunc
-	game          *Instance
-	next          chan State
-	updateClients chan []*Client
+	ID          uuid.UUID `json:"id"`
+	User        *db.User  `json:"user"`
+	conn        *websocket.Conn
+	ctx         context.Context
+	cancel      context.CancelFunc
+	game        *Instance
+	nextState   chan State
+	nextClients chan []*Client
 }
 
 func NewClient(game *Instance, user *db.User) *Client {
 	ctx, cancel := context.WithCancel(game.ctx)
 	return &Client{
-		ID:            uuid.New(),
-		ctx:           ctx,
-		cancel:        cancel,
-		game:          game,
-		next:          make(chan State),
-		updateClients: make(chan []*Client),
-		User:          user,
+		ID:          user.ID,
+		ctx:         ctx,
+		cancel:      cancel,
+		game:        game,
+		nextState:   make(chan State),
+		nextClients: make(chan []*Client),
+		User:        user,
 	}
 }
 
@@ -67,7 +67,7 @@ func (c *Client) Connect(w http.ResponseWriter, r *http.Request) error {
 }
 
 func (c *Client) WriteState(state State) error {
-	json, err := json.Marshal(state)
+	json, err := json.Marshal(NewStateMessage(state))
 	if err != nil {
 		return err
 	}
@@ -79,7 +79,7 @@ func (c *Client) WriteState(state State) error {
 }
 
 func (c *Client) WriteClients(clients []*Client) error {
-	json, err := json.Marshal(clients)
+	json, err := json.Marshal(NewClientsMessage(clients))
 	if err != nil {
 		return err
 	}
@@ -144,14 +144,14 @@ func (c *Client) listenOut() {
 
 	for {
 		select {
-		case state := <-c.next:
+		case state := <-c.nextState:
 			fmt.Println("writing state", state)
 			c.conn.SetWriteDeadline(time.Now().Add(WriteWait))
 			if err := c.WriteState(state); err != nil {
 				return
 			}
-		case clients := <-c.updateClients:
-			fmt.Println("updating clients", len(clients))
+		case clients := <-c.nextClients:
+			fmt.Println("writing clients", len(clients))
 			c.conn.SetWriteDeadline(time.Now().Add(WriteWait))
 			if err := c.WriteClients(clients); err != nil {
 				return
