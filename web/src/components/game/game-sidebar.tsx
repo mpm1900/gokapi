@@ -7,7 +7,6 @@ import {
   SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
-  SidebarGroupLabel,
   SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
@@ -55,7 +54,6 @@ export function GameSidebar() {
           <TabsContent value="clients" asChild>
             <SidebarContent>
               <SidebarGroup>
-                <SidebarGroupLabel>Clients</SidebarGroupLabel>
                 <SidebarGroupContent>
                   <SidebarMenu>
                     {clients.map((client) => (

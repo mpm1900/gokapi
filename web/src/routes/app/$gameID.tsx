@@ -11,7 +11,11 @@ export const Route = createFileRoute('/app/$gameID')({
 function RouteComponent() {
   return (
     <GameProvider>
-      <SidebarProvider className="min-h-full">
+      <SidebarProvider
+        className="min-h-full"
+        // @ts-ignore
+        style={{ '--sidebar-width': '320px' }}
+      >
         <SidebarInset className="rounded-xl p-4">
           <GameManager />
         </SidebarInset>
