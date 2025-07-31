@@ -20,8 +20,8 @@ type Prompt struct {
 type User struct {
 	ID         uuid.UUID   `json:"id"`
 	Email      string      `json:"email"`
-	Password   string      `json:"password"`
-	Salt       string      `json:"salt"`
-	JwtVersion int32       `json:"jwt_version"`
+	Password   string      `json:"-"`
+	Salt       string      `json:"-"`
+	JwtVersion int32       `json:"-"`
 	Username   pgtype.Text `json:"username"`
 }

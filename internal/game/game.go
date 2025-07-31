@@ -2,6 +2,8 @@ package game
 
 import (
 	"context"
+	"maps"
+	"slices"
 
 	"github.com/google/uuid"
 )
@@ -41,12 +43,24 @@ func (i *Instance) UnregisterClient(client *Client) {
 }
 
 func (i *Instance) HandleAction(action Action) {
+	i.State = Reducer(i.State, action)
 }
 
 func (i *Instance) BroadcastState() {
 	for _, client := range i.Clients {
 		select {
 		case client.next <- i.State:
+		default:
+			i.UnregisterClient(client)
+		}
+	}
+}
+
+func (i *Instance) BroadcastClients() {
+	clients := slices.Collect(maps.Values(i.Clients))
+	for _, client := range i.Clients {
+		select {
+		case client.updateClients <- clients:
 		default:
 			i.UnregisterClient(client)
 		}

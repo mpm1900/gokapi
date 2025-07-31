@@ -15,3 +15,9 @@ sql:
             go_type:
               import: "github.com/google/uuid"
               type: "UUID"
+          - column: "users.password"
+            go_struct_tag: 'json:"-"'
+          - column: "users.salt"
+            go_struct_tag: 'json:"-"'
+          - column: "users.jwt_version"
+            go_struct_tag: 'json:"-"'

@@ -17,8 +17,8 @@ INSERT INTO users (email, password, salt) VALUES ($1, $2, $3) RETURNING id, emai
 
 type CreateUserParams struct {
 	Email    string `json:"email"`
-	Password string `json:"password"`
-	Salt     string `json:"salt"`
+	Password string `json:"-"`
+	Salt     string `json:"-"`
 }
 
 func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, error) {

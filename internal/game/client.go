@@ -23,13 +23,14 @@ var upgrader = websocket.Upgrader{
 }
 
 type Client struct {
-	ID     uuid.UUID `json:"id"`
-	conn   *websocket.Conn
-	ctx    context.Context
-	cancel context.CancelFunc
-	game   *Instance
-	next   chan State
-	User   *db.User `json:"user"`
+	ID            uuid.UUID `json:"id"`
+	User          *db.User `json:"user"`
+	conn          *websocket.Conn
+	ctx           context.Context
+	cancel        context.CancelFunc
+	game          *Instance
+	next          chan State
+	updateClients chan []*Client
 }
 
 func NewClient(game *Instance, user *db.User) *Client {
@@ -57,6 +58,19 @@ func (c *Client) Connect(w http.ResponseWriter, r *http.Request) error {
 
 func (c *Client) WriteState(state State) error {
 	json, err := json.Marshal(state)
+	if err != nil {
+		return err
+	}
+
+	if err = c.conn.WriteMessage(websocket.TextMessage, json); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (c *Client) WriteClients(clients []*Client) error {
+	json, err := json.Marshal(clients)
 	if err != nil {
 		return err
 	}
@@ -121,6 +135,11 @@ func (c *Client) listenOut() {
 		case state := <-c.next:
 			c.conn.SetWriteDeadline(time.Now().Add(WriteWait))
 			if err := c.WriteState(state); err != nil {
+				return
+			}
+		case clients := <-c.updateClients:
+			c.conn.SetWriteDeadline(time.Now().Add(WriteWait))
+			if err := c.WriteClients(clients); err != nil {
 				return
 			}
 		// this block ensures that the client doesnt' get disconnected
