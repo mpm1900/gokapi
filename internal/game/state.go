@@ -6,9 +6,9 @@ type Action struct {
 
 type State struct{}
 
-func Reducer(state State, action Action) State {
+func Reducer(instance *Instance, action Action) {
 	switch action.Type {
 	default:
-		return state
+		return
 	}
 }

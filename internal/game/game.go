@@ -42,10 +42,6 @@ func (i *Instance) UnregisterClient(client *Client) {
 	}
 }
 
-func (i *Instance) HandleAction(action Action) {
-	i.State = Reducer(i.State, action)
-}
-
 func (i *Instance) BroadcastState() {
 	for _, client := range i.Clients {
 		select {
@@ -72,10 +68,12 @@ func (i *Instance) Run() {
 		select {
 		case client := <-i.Register:
 			i.RegisterClient(client)
+			i.BroadcastClients()
 		case client := <-i.Unregister:
 			i.UnregisterClient(client)
+			i.BroadcastClients()
 		case action := <-i.Handle:
-			i.HandleAction(action)
+			Reducer(i, action)
 			i.BroadcastState()
 		}
 	}
