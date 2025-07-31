@@ -44,12 +44,13 @@ type Client struct {
 func NewClient(game *Instance, user *db.User) *Client {
 	ctx, cancel := context.WithCancel(game.ctx)
 	return &Client{
-		ID:     uuid.New(),
-		ctx:    ctx,
-		cancel: cancel,
-		game:   game,
-		next:   make(chan State),
-		User:   user,
+		ID:            uuid.New(),
+		ctx:           ctx,
+		cancel:        cancel,
+		game:          game,
+		next:          make(chan State),
+		updateClients: make(chan []*Client, 1),
+		User:          user,
 	}
 }
 
@@ -103,6 +104,8 @@ func (c *Client) listenForAction(action *Action) error {
 
 func (c *Client) listenIn() {
 	defer func() {
+		c.game.Unregister <- c
+		c.conn.Close()
 		c.cancel()
 	}()
 
@@ -135,7 +138,7 @@ func (c *Client) listenOut() {
 	clock := time.NewTicker(PingPeriod)
 	defer func() {
 		clock.Stop()
-		c.cancel()
+		c.conn.Close()
 	}()
 
 	for {
@@ -164,11 +167,6 @@ func (c *Client) listenOut() {
 }
 
 func (c *Client) Run() {
-	defer func() {
-		c.game.Unregister <- c
-		c.conn.Close()
-	}()
-
 	go c.listenIn()
 	go c.listenOut()
 }
