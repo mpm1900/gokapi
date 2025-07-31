@@ -2,8 +2,8 @@ package server
 
 import (
 	"context"
-	"fmt"
 	"net/http"
+	"sync"
 
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
@@ -14,16 +14,15 @@ import (
 )
 
 type GamesHandler struct {
-	mux      *http.ServeMux
-	games    map[uuid.UUID]*game.Instance
-	register chan *game.Instance
+	mux     *http.ServeMux
+	games   map[uuid.UUID]*game.Instance
+	gamesMu sync.RWMutex
 }
 
 func NewGamesHandler(ctx context.Context, queries *db.Queries) *GamesHandler {
 	handler := &GamesHandler{
-		mux:      http.NewServeMux(),
-		games:    make(map[uuid.UUID]*game.Instance),
-		register: make(chan *game.Instance),
+		mux:   http.NewServeMux(),
+		games: make(map[uuid.UUID]*game.Instance),
 	}
 
 	handler.mux.HandleFunc("GET /{gameID}/connect", auth.WithJWT(handler.handleGameConnection(ctx, queries), queries))
@@ -32,6 +31,17 @@ func NewGamesHandler(ctx context.Context, queries *db.Queries) *GamesHandler {
 
 func (gh *GamesHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	gh.mux.ServeHTTP(w, r)
+}
+
+func (gh *GamesHandler) newGameInstance(gameID uuid.UUID, ctx context.Context) *game.Instance {
+	instance := game.NewInstance(ctx)
+	instance.ID = gameID
+	gh.gamesMu.Lock()
+	gh.games[instance.ID] = instance
+	gh.gamesMu.Unlock()
+	go instance.Run()
+
+	return instance
 }
 
 func (gh *GamesHandler) handleGameConnection(ctx context.Context, queries *db.Queries) http.HandlerFunc {
@@ -55,11 +65,11 @@ func (gh *GamesHandler) handleGameConnection(ctx context.Context, queries *db.Qu
 			return
 		}
 
+		gh.gamesMu.RLock()
 		instance, ok := gh.games[gameID]
+		gh.gamesMu.RUnlock()
 		if !ok {
-			instance = game.NewInstance(ctx)
-			instance.ID = gameID
-			gh.register <- instance
+			instance = gh.newGameInstance(gameID, ctx)
 		}
 
 		client := game.NewClient(instance, &user)
@@ -68,17 +78,7 @@ func (gh *GamesHandler) handleGameConnection(ctx context.Context, queries *db.Qu
 			return
 		}
 
-		fmt.Println(len(gh.games), len(instance.Clients))
 		client.Run()
 	}
 }
 
-func (gh *GamesHandler) Run() {
-	for {
-		select {
-		case instance := <-gh.register:
-			gh.games[instance.ID] = instance
-			go instance.Run()
-		}
-	}
-}

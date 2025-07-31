@@ -49,7 +49,7 @@ func NewClient(game *Instance, user *db.User) *Client {
 		cancel:        cancel,
 		game:          game,
 		next:          make(chan State),
-		updateClients: make(chan []*Client, 1),
+		updateClients: make(chan []*Client),
 		User:          user,
 	}
 }

@@ -27,7 +27,6 @@ func NewServer(ctx context.Context, queries *db.Queries) *Server {
 	}
 
 	gamesHandler := NewGamesHandler(ctx, queries)
-	go gamesHandler.Run()
 
 	mux := http.NewServeMux()
 	api := http.NewServeMux()
