@@ -4,6 +4,9 @@ import (
 	"context"
 	"encoding/json"
 	"net/http"
+	"os"
+	"slices"
+	"strings"
 	"time"
 
 	"github.com/mpm1900/gokapi/internal/db"
@@ -20,11 +23,16 @@ const MaxMessageSize = 512
 var upgrader = websocket.Upgrader{
 	ReadBufferSize:  1024,
 	WriteBufferSize: 1024,
+	CheckOrigin: func(r *http.Request) bool {
+		allowedOrigins := strings.Split(os.Getenv("ALLOWED_ORIGINS"), ",")
+		origin := r.Header.Get("Origin")
+		return slices.Contains(allowedOrigins, origin)
+	},
 }
 
 type Client struct {
 	ID            uuid.UUID `json:"id"`
-	User          *db.User `json:"user"`
+	User          *db.User  `json:"user"`
 	conn          *websocket.Conn
 	ctx           context.Context
 	cancel        context.CancelFunc

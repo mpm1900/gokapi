@@ -31,8 +31,17 @@ export default defineConfig({
         target: 'https://localhost:8443',
         changeOrigin: true,
         secure: false,
-        
       },
+      '/games': {
+        target: 'https://localhost:8443',
+        changeOrigin: true,
+        secure: false,
+        ws: true,
+      },
+    },
+    https: {
+      key: '../certs/server.key',
+      cert: '../certs/server.crt',
     },
   },
 })

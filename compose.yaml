@@ -42,6 +42,7 @@ services:
       KEY_FILE: ./certs/server.key
       JWT_SECRET: ${JWT_SECRET}
       PORT: :8443
+      ALLOWED_ORIGINS: ${ALLOWED_ORIGINS}
 
     ports:
       - "3005:8080"

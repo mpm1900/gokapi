@@ -2,6 +2,7 @@ package game
 
 import (
 	"context"
+	"fmt"
 	"maps"
 	"slices"
 
@@ -19,8 +20,8 @@ type Instance struct {
 	Handle     chan Action
 }
 
-func NewInstance(ctx context.Context) Instance {
-	return Instance{
+func NewInstance(ctx context.Context) *Instance {
+	return &Instance{
 		ID:         uuid.New(),
 		ctx:        ctx,
 		Clients:    make(map[uuid.UUID]*Client),
@@ -64,12 +65,15 @@ func (i *Instance) BroadcastClients() {
 }
 
 func (i *Instance) Run() {
+	fmt.Println("running game instance")
 	for {
 		select {
 		case client := <-i.Register:
+			fmt.Println("registering client")
 			i.RegisterClient(client)
 			i.BroadcastClients()
 		case client := <-i.Unregister:
+			fmt.Println("unregistering client")
 			i.UnregisterClient(client)
 			i.BroadcastClients()
 		case action := <-i.Handle:

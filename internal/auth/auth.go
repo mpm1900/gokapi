@@ -44,7 +44,6 @@ func WithJWT(next http.HandlerFunc, queries *db.Queries) http.HandlerFunc {
 		}
 
 		jwt, err := ValidateJWT(cookie.Value, queries)
-
 		if err != nil {
 			w.WriteHeader(http.StatusUnauthorized)
 			return
@@ -136,10 +135,11 @@ func NewJwtCookie(token string, exp int64) *http.Cookie {
 	return &http.Cookie{
 		Name:     "jwt",
 		Value:    token,
+		Path:     "/",
 		MaxAge:   int(exp - time.Now().Unix()),
 		HttpOnly: true,
 		Secure:   true,
-		SameSite: http.SameSiteStrictMode,
+		SameSite: http.SameSiteNoneMode,
 	}
 }
 
