@@ -1,4 +1,8 @@
-import { useGameConnection, useGameState } from '@/hooks/use-game'
+import {
+  useGameClients,
+  useGameConnection,
+  useGameState,
+} from '@/hooks/use-game'
 import type { MessageHandler } from '@/hooks/use-game-connection'
 import { getRouteApi } from '@tanstack/react-router'
 
@@ -11,6 +15,7 @@ export function GameManager() {
   const { gameID } = route.useParams()
   const connection = useGameConnection()
   const state = useGameState()
+  const clients = useGameClients()
 
   useEffect(() => {
     connection.connect(gameID, {
@@ -26,6 +31,9 @@ export function GameManager() {
     }
     const clientsHandler: MessageHandler = (msg) => {
       console.log('clients', msg)
+      if (msg.type === 'clients') {
+        clients.set(msg.clients)
+      }
     }
     connection.on('state', stateHandler)
     connection.on('clients', clientsHandler)
