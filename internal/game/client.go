@@ -3,6 +3,7 @@ package game
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"os"
 	"slices"
@@ -70,7 +71,6 @@ func (c *Client) WriteState(state State) error {
 	if err != nil {
 		return err
 	}
-
 	if err = c.conn.WriteMessage(websocket.TextMessage, json); err != nil {
 		return err
 	}
@@ -126,6 +126,7 @@ func (c *Client) listenIn() {
 			break
 		}
 
+		fmt.Println("received action", action)
 		select {
 		case c.game.Handle <- action:
 		case <-c.ctx.Done():
@@ -144,11 +145,13 @@ func (c *Client) listenOut() {
 	for {
 		select {
 		case state := <-c.next:
+			fmt.Println("writing state", state)
 			c.conn.SetWriteDeadline(time.Now().Add(WriteWait))
 			if err := c.WriteState(state); err != nil {
 				return
 			}
 		case clients := <-c.updateClients:
+			fmt.Println("updating clients", len(clients))
 			c.conn.SetWriteDeadline(time.Now().Add(WriteWait))
 			if err := c.WriteClients(clients); err != nil {
 				return

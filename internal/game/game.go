@@ -39,18 +39,23 @@ func (i *Instance) RegisterClient(client *Client) {
 func (i *Instance) UnregisterClient(client *Client) {
 	if _, ok := i.Clients[client.ID]; ok {
 		delete(i.Clients, client.ID)
-		close(client.next)
 	}
 }
 
 func (i *Instance) BroadcastState() {
+	fmt.Println("broadcasting state")
+	state := i.State
 	for _, client := range i.Clients {
 		select {
-		case client.next <- i.State:
+		case client.next <- state:
 		default:
 			i.UnregisterClient(client)
 		}
 	}
+}
+
+func (i *Instance) SendState(client *Client) {
+	client.next <- i.State
 }
 
 func (i *Instance) BroadcastClients() {
@@ -72,13 +77,15 @@ func (i *Instance) Run() {
 			fmt.Println("registering client")
 			i.RegisterClient(client)
 			i.BroadcastClients()
+			i.SendState(client)
 		case client := <-i.Unregister:
 			fmt.Println("unregistering client")
 			i.UnregisterClient(client)
 			i.BroadcastClients()
 		case action := <-i.Handle:
-			Reducer(i, action)
-			i.BroadcastState()
+			if Reducer(i, action) {
+				i.BroadcastState()
+			}
 		}
 	}
 }
