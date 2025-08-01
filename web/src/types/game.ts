@@ -3,6 +3,7 @@ import type { User } from './user'
 export type GameClient = {
   id: string
   user: User
+  role: 'HOST' | 'PLYAYER'
 }
 
 export type GameChatMessage = {

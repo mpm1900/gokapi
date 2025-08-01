@@ -34,6 +34,7 @@ var upgrader = websocket.Upgrader{
 type Client struct {
 	ID     uuid.UUID `json:"id"`
 	User   *db.User  `json:"user"`
+	Role   string    `json:"role"`
 	conn   *websocket.Conn
 	ctx    context.Context
 	cancel context.CancelFunc
@@ -44,17 +45,19 @@ type Client struct {
 	nextChatMessage chan ChatMessage
 }
 
-func NewClient(game *Instance, user *db.User) *Client {
+func NewClient(game *Instance, user *db.User, role string) *Client {
 	ctx, cancel := context.WithCancel(game.ctx)
 	return &Client{
-		ID:              user.ID,
-		ctx:             ctx,
-		cancel:          cancel,
-		game:            game,
+		ID:     user.ID,
+		ctx:    ctx,
+		cancel: cancel,
+		User:   user,
+		Role:   role,
+		game:   game,
+
 		nextState:       make(chan State),
 		nextClients:     make(chan []*Client),
 		nextChatMessage: make(chan ChatMessage),
-		User:            user,
 	}
 }
 

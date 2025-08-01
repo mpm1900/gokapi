@@ -21,6 +21,7 @@ import {
 import { useUser } from '@/hooks/use-user'
 import type { GameChatMessage, GameClient } from '@/types/game'
 import { useMemo } from 'react'
+import { RoleIcon } from '../role-icon'
 
 export function GameSidebar() {
   const user = useUser()
@@ -34,7 +35,7 @@ export function GameSidebar() {
       variant="floating"
       className="m-2 h-[calc(100svh-1rem)]"
     >
-      <Tabs defaultValue="chat" className="h-full">
+      <Tabs defaultValue="chat" className="h-full gap-0">
         <SidebarHeader className="items-center">
           <TabsList>
             <TabsTrigger value="chat">Chat</TabsTrigger>
@@ -43,7 +44,7 @@ export function GameSidebar() {
         </SidebarHeader>
 
         <TabsContent value="chat" className="flex-1 flex flex-col">
-          <SidebarContent className="flex-1 max-h-[calc(100vh-9rem)] overflow-auto">
+          <SidebarContent className="flex-1 max-h-[calc(100vh-8rem)] overflow-auto">
             <SidebarGroup>
               <SidebarGroupContent>
                 <SidebarMenu>
@@ -73,6 +74,7 @@ export function GameSidebar() {
             >
               <Input
                 autoFocus
+                autoComplete="off"
                 placeholder="Type a message..."
                 name="message"
                 disabled={!user}
@@ -96,7 +98,9 @@ export function GameSidebar() {
                 <SidebarMenu>
                   {clients.map((client) => (
                     <SidebarMenuItem key={client.id}>
-                      <SidebarMenuButton>{client.user.email}</SidebarMenuButton>
+                      <SidebarMenuButton>
+                        <RoleIcon role={client.role} /> {client.user.email}
+                      </SidebarMenuButton>
                     </SidebarMenuItem>
                   ))}
                 </SidebarMenu>
@@ -124,8 +128,11 @@ function ChatMessage({
   return (
     <SidebarMenuItem>
       <div className="h-fit items-start inline">
-        <span className="font-bold mr-1">
-          {client?.user.email || 'unknown'}:
+        <span className="font-bold mr-1 inline-flex max-h-[17px] items-baseline gap-1">
+          {client && (
+            <RoleIcon className="size-4 absolute top-0.5" role={client?.role} />
+          )}
+          <div className="pl-5">{client?.user.email || 'unknown'}:</div>
         </span>
         <span>{message.message}</span>
       </div>

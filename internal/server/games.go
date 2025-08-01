@@ -109,7 +109,11 @@ func (gh *GamesHandler) handleGameConnection(ctx context.Context, queries *db.Qu
 				return
 			}
 
-			client := game.NewClient(instance, &user)
+			role := "PLYAYER"
+			if len(instance.Clients) == 0 {
+				role = "HOST"
+			}
+			client := game.NewClient(instance, &user, role)
 			if err := client.Connect(w, r); err != nil {
 				w.WriteHeader(http.StatusInternalServerError)
 				return

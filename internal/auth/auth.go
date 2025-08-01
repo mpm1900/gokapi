@@ -15,9 +15,21 @@ import (
 	"github.com/mpm1900/gokapi/internal/db"
 )
 
-func getKey(token *jwt.Token) (any, error) {
+const COOKIE_LENGTH = 5 * time.Minute
+
+func getSecret() []byte {
 	secret := []byte(os.Getenv("JWT_SECRET"))
+	return secret
+}
+
+func getKey(token *jwt.Token) (any, error) {
+	secret := getSecret()
 	return secret, nil
+}
+
+func getExp() int64 {
+	exp := time.Now().Add(COOKIE_LENGTH).Unix()
+	return exp
 }
 
 func HashPassword(password string) (string, string, error) {
@@ -115,22 +127,6 @@ func ValidateJWT(token string, queries *db.Queries) (jwt.MapClaims, error) {
 	return claims, nil
 }
 
-func CreateJWT(user *db.User) (string, error) {
-	secret := []byte(os.Getenv("JWT_SECRET"))
-	exp := time.Now().Add(time.Minute * 5).Unix()
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"id":          user.ID,
-		"email":       user.Email,
-		"jwt_version": user.JwtVersion,
-		"exp":         exp,
-	})
-	tokenString, err := token.SignedString(secret)
-	if err != nil {
-		return "", err
-	}
-	return tokenString, nil
-}
-
 func NewJwtCookie(token string, exp int64) *http.Cookie {
 	return &http.Cookie{
 		Name:     "jwt",
@@ -139,28 +135,40 @@ func NewJwtCookie(token string, exp int64) *http.Cookie {
 		MaxAge:   int(exp - time.Now().Unix()),
 		HttpOnly: true,
 		Secure:   true,
-		SameSite: http.SameSiteNoneMode,
+		SameSite: http.SameSiteStrictMode,
 	}
 }
 
-func RefreshJWT(claims jwt.MapClaims) (*http.Cookie, error) {
-	secret := []byte(os.Getenv("JWT_SECRET"))
-	exp := time.Now().Add(time.Minute * 5).Unix()
-
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"id":          claims["id"],
-		"email":       claims["email"],
-		"jwt_version": claims["jwt_version"],
-		"exp":         exp,
+func NewJwtClaims(id, email string, jwtVersion int32) *jwt.Token {
+	return jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+		"id":          id,
+		"email":       email,
+		"jwt_version": jwtVersion,
+		"exp":         getExp(),
 	})
+}
+
+func RefreshJWT(claims jwt.MapClaims) (*http.Cookie, error) {
+	secret := getSecret()
+
+	version := claims["jwt_version"].(float64)
+	token := NewJwtClaims(claims["id"].(string), claims["email"].(string), int32(version))
 	jwt, err := token.SignedString(secret)
 	if err != nil {
 		return nil, err
 	}
 
-	cookie := NewJwtCookie(jwt, exp)
+	return NewJwtCookie(jwt, getExp()), nil
+}
 
-	return cookie, nil
+func CreateJWT(user *db.User) (string, error) {
+	secret := getSecret()
+	token := NewJwtClaims(user.ID.String(), user.Email, user.JwtVersion)
+	tokenString, err := token.SignedString(secret)
+	if err != nil {
+		return "", err
+	}
+	return tokenString, nil
 }
 
 func CreateJWTCookie(user *db.User) (*http.Cookie, error) {
@@ -168,8 +176,5 @@ func CreateJWTCookie(user *db.User) (*http.Cookie, error) {
 	if err != nil {
 		return nil, err
 	}
-	exp := time.Now().Add(time.Minute * 5).Unix()
-	cookie := NewJwtCookie(jwt, exp)
-
-	return cookie, nil
+	return NewJwtCookie(jwt, getExp()), nil
 }

@@ -20,7 +20,10 @@ export const Route = createFileRoute('/app/$gameID')({
 
 function RouteComponent() {
   const { status, proceed, reset } = useBlocker({
-    shouldBlockFn: () => true,
+    shouldBlockFn: ({ next }) => {
+      if (next.routeId === '/login') return false
+      return true
+    },
     withResolver: true,
   })
   return (

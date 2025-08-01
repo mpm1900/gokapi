@@ -60,9 +60,9 @@ export function GameManager() {
     <div>
       <div className="flex flex-rol items-center gap-2">
         {connection.connected ? (
-          <div className="rounded-full size-3 bg-green-400" />
+          <div className="rounded-full size-2 bg-green-300" />
         ) : (
-          <div />
+          <div className="rounded-full size-2 bg-green-300" />
         )}
         <div className="text-muted-foreground italic">{gameID}</div>
       </div>
