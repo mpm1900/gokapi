@@ -11,6 +11,7 @@ import (
 
 type Instance struct {
 	ID      uuid.UUID             `json:"id"`
+	HostID  uuid.UUID             `json:"hostID"`
 	ctx     context.Context       `json:"-"`
 	Clients map[uuid.UUID]*Client `json:"-"`
 	State   State                 `json:"-"`

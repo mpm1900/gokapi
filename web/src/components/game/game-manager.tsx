@@ -4,7 +4,10 @@ import {
   useGameConnection,
   useGameState,
 } from '@/hooks/use-game'
-import type { MessageHandler } from '@/hooks/use-game-connection'
+import type {
+  GameConnectOptions,
+  MessageHandler,
+} from '@/hooks/use-game-connection'
 import { getRouteApi } from '@tanstack/react-router'
 
 import { useEffect, useRef } from 'react'
@@ -20,23 +23,31 @@ export function GameManager() {
   const state = useGameState()
   const clients = useGameClients()
   const chat = useGameChat()
+  const hasRenderedConnectToast = useRef(false)
   const hasRenderedDiconnectToast = useRef(false)
 
   useEffect(() => {
     connection.connect(gameID, {
-      onConnect: (store) => {
-        console.log('connected', store)
-        toast.success('Connected to game')
+      // @ts-ignore TODO reconnect
+      onConnect: (store, opts) => {
+        console.log('connected', store.connected)
+        if (!hasRenderedConnectToast.current) {
+          console.log('connected', store)
+          toast.success('Connected to game')
+        }
+        hasRenderedConnectToast.current = true
         hasRenderedDiconnectToast.current = false
       },
       onError: (evt) => {
         console.log('error', evt)
       },
-      onDisconnect: () => {
+      // @ts-ignore TODO reconnect
+      onDisconnect: (opts) => {
         console.log('disconnect')
         if (!hasRenderedDiconnectToast.current) {
           toast.error('Disconnected from game')
           hasRenderedDiconnectToast.current = true
+          hasRenderedConnectToast.current = false
         }
       },
     })

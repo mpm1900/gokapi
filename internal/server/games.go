@@ -110,8 +110,9 @@ func (gh *GamesHandler) handleGameConnection(ctx context.Context, queries *db.Qu
 			}
 
 			role := "PLYAYER"
-			if len(instance.Clients) == 0 {
+			if instance.HostID == uuid.Nil || instance.HostID == user.ID {
 				role = "HOST"
+				instance.HostID = user.ID
 			}
 			client := game.NewClient(instance, &user, role)
 			if err := client.Connect(w, r); err != nil {

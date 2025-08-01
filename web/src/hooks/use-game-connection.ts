@@ -5,9 +5,12 @@ type MessageType = GameMessage['type']
 export type MessageHandler = (message: GameMessage) => void
 export type MessageHandlers = Map<MessageType, Set<MessageHandler>>
 
-type GameConnectOptions = {
-  onConnect?: (conn: GameConnectionStore) => void
-  onDisconnect?: () => void
+export type GameConnectOptions = {
+  onConnect?: (
+    conn: GameConnectionStore,
+    reconnectOptions: GameConnectOptions,
+  ) => void
+  onDisconnect?: (reconnectOptions: GameConnectOptions) => void
   onError?: (evt: Event) => void
 }
 
@@ -37,16 +40,17 @@ export const createGameConnectionStore = () =>
       eventEmitter: new Map(),
       connect: (instanceID: string, opts) => {
         const old = get()
-        if (old.conn) return opts.onConnect?.(old)
+        if (old.conn) return opts.onConnect?.(old, opts)
 
         const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
         const host = window.location.host
         const path = `/games/${instanceID}/connect`
         const conn = new WebSocket(`${protocol}//${host}${path}`)
+        set({ conn })
 
         conn.onopen = () => {
           set({ connected: true })
-          opts.onConnect?.(get())
+          opts.onConnect?.(get(), opts)
         }
         conn.onerror = (e) => {
           opts.onError?.(e)
@@ -57,13 +61,10 @@ export const createGameConnectionStore = () =>
         }
         conn.onclose = () => {
           if (conn === get().conn) {
-            opts.onDisconnect?.()
-            set({ connected: false, conn: null })
-            setTimeout(() => get().connect(instanceID, opts), 1000)
+            opts.onDisconnect?.(opts)
+            set({ connected: false })
           }
         }
-
-        set({ conn })
       },
       disconnect: () => {
         const { conn, connected } = get()
