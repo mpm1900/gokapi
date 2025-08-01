@@ -19,6 +19,8 @@ import {
   useGameConnection,
 } from '@/hooks/use-game'
 import { useUser } from '@/hooks/use-user'
+import type { GameChatMessage, GameClient } from '@/types/game'
+import { useMemo } from 'react'
 
 export function GameSidebar() {
   const user = useUser()
@@ -41,14 +43,12 @@ export function GameSidebar() {
         </SidebarHeader>
 
         <TabsContent value="chat" className="flex-1 flex flex-col">
-          <SidebarContent className="flex-1">
+          <SidebarContent className="flex-1 max-h-[calc(100vh-9rem)] overflow-auto">
             <SidebarGroup>
               <SidebarGroupContent>
                 <SidebarMenu>
                   {messages.map((message, i) => (
-                    <SidebarMenuItem key={i}>
-                      <SidebarMenuButton>{message.message}</SidebarMenuButton>
-                    </SidebarMenuItem>
+                    <ChatMessage key={i} message={message} clients={clients} />
                   ))}
                 </SidebarMenu>
               </SidebarGroupContent>
@@ -106,5 +106,29 @@ export function GameSidebar() {
         </TabsContent>
       </Tabs>
     </Sidebar>
+  )
+}
+
+function ChatMessage({
+  message,
+  clients,
+}: {
+  message: GameChatMessage
+  clients: GameClient[]
+}) {
+  const client = useMemo(
+    () => clients.find((c) => c.id === message.from),
+    [clients, message.from],
+  )
+
+  return (
+    <SidebarMenuItem>
+      <div className="h-fit items-start inline">
+        <span className="font-bold mr-1">
+          {client?.user.email || 'unknown'}:
+        </span>
+        <span>{message.message}</span>
+      </div>
+    </SidebarMenuItem>
   )
 }

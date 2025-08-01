@@ -58,12 +58,20 @@ export function GameManager() {
 
   return (
     <div>
-      <div>Game Manager: connected={String(connection.connected)}</div>
-      <div>{connection.conn?.url}</div>
-      <div>State: {state.value}</div>
-      <Button onClick={() => connection.send({ type: 'INCREMENT' })}>
-        Increment
-      </Button>
+      <div className="flex flex-rol items-center gap-2">
+        {connection.connected ? (
+          <div className="rounded-full size-3 bg-green-400" />
+        ) : (
+          <div />
+        )}
+        <div className="text-muted-foreground italic">{gameID}</div>
+      </div>
+      <div className="flex flex-col items-center gap-2 p-8">
+        <div>State: {state.value}</div>
+        <Button onClick={() => connection.send({ type: 'INCREMENT' })}>
+          Increment
+        </Button>
+      </div>
     </div>
   )
 }
