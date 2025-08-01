@@ -104,7 +104,7 @@ function AppSidebarUser() {
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuItem asChild>
-              <Link to="/app/user/settings" className="cursor-pointer">
+              <Link to="/user/settings" className="cursor-pointer">
                 <SettingsIcon />
                 Settings
               </Link>

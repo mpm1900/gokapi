@@ -13,8 +13,10 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
 import { createFileRoute, useBlocker } from '@tanstack/react-router'
+import { authGuard } from '@/lib/auth'
 
 export const Route = createFileRoute('/app/$gameID')({
+  beforeLoad: authGuard(),
   component: RouteComponent,
 })
 

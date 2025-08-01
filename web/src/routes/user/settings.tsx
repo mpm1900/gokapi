@@ -1,11 +1,11 @@
 import { authGuard } from '@/lib/auth'
 import { createFileRoute } from '@tanstack/react-router'
 
-export const Route = createFileRoute('/app/user/settings')({
+export const Route = createFileRoute('/user/settings')({
   beforeLoad: authGuard(),
   component: RouteComponent,
 })
 
 function RouteComponent() {
-  return <div>Hello "/app/user/settings"!</div>
+  return <div>Hello "/user/settings"!</div>
 }

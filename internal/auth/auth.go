@@ -15,7 +15,7 @@ import (
 	"github.com/mpm1900/gokapi/internal/db"
 )
 
-const COOKIE_LENGTH = 5 * time.Minute
+const COOKIE_LENGTH = 60 * time.Minute
 
 func getSecret() []byte {
 	secret := []byte(os.Getenv("JWT_SECRET"))
@@ -139,7 +139,7 @@ func NewJwtCookie(token string, exp int64) *http.Cookie {
 	}
 }
 
-func NewJwtClaims(id, email string, jwtVersion int32) *jwt.Token {
+func NewJwtClaims(id uuid.UUID, email string, jwtVersion int32) *jwt.Token {
 	return jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"id":          id,
 		"email":       email,
@@ -152,7 +152,12 @@ func RefreshJWT(claims jwt.MapClaims) (*http.Cookie, error) {
 	secret := getSecret()
 
 	version := claims["jwt_version"].(float64)
-	token := NewJwtClaims(claims["id"].(string), claims["email"].(string), int32(version))
+	email := claims["email"].(string)
+	id, err := GetUUIDFromJWTClaims(claims)
+	if err != nil {
+		return nil, err
+	}
+	token := NewJwtClaims(id, email, int32(version))
 	jwt, err := token.SignedString(secret)
 	if err != nil {
 		return nil, err
@@ -163,7 +168,7 @@ func RefreshJWT(claims jwt.MapClaims) (*http.Cookie, error) {
 
 func CreateJWT(user *db.User) (string, error) {
 	secret := getSecret()
-	token := NewJwtClaims(user.ID.String(), user.Email, user.JwtVersion)
+	token := NewJwtClaims(user.ID, user.Email, user.JwtVersion)
 	tokenString, err := token.SignedString(secret)
 	if err != nil {
 		return "", err

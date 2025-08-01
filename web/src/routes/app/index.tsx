@@ -1,7 +1,9 @@
 import { useGames } from '@/hooks/queries/use-games'
+import { authGuard } from '@/lib/auth'
 import { createFileRoute, Link } from '@tanstack/react-router'
 
 export const Route = createFileRoute('/app/')({
+  beforeLoad: authGuard(),
   component: RouteComponent,
 })
 
