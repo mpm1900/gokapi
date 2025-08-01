@@ -15,7 +15,7 @@ import {
 import { createFileRoute, useBlocker } from '@tanstack/react-router'
 import { authGuard } from '@/lib/auth'
 
-export const Route = createFileRoute('/app/$gameID')({
+export const Route = createFileRoute('/game/$gameID')({
   beforeLoad: authGuard(),
   component: RouteComponent,
 })

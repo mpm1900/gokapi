@@ -30,6 +30,7 @@ func CreateUser(ctx context.Context, queries *db.Queries, email, password string
 		Email:    email,
 		Password: hashed,
 		Salt:     salt,
+		Username: email,
 	})
 	if err != nil {
 		return nil, err

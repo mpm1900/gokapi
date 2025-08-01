@@ -14,7 +14,13 @@ export function useLogOut() {
     mutationKey: [MUTATION_KEYS.LOGOUT],
     mutationFn: async () => {
       const { data } = await instance.post('/api/auth/logout')
-      logout({ queryClient, location, preload: true, navigate })
+      logout({
+        queryClient,
+        location,
+        preload: true,
+        includeRedirect: false,
+        navigate,
+      })
       toast('Logged out.')
       return data
     },

@@ -1,7 +1,7 @@
 import { AppSidebar } from '@/components/app-sidebar'
 import { PageLayout } from '@/components/page-layout'
 import { authGuard } from '@/lib/auth'
-import { createFileRoute, Outlet, redirect } from '@tanstack/react-router'
+import { createFileRoute, Outlet } from '@tanstack/react-router'
 
 export const Route = createFileRoute('/user')({
   beforeLoad: authGuard(),
@@ -10,7 +10,7 @@ export const Route = createFileRoute('/user')({
 
 function RouteComponent() {
   return (
-    <PageLayout sidebar=<AppSidebar variant="inset" />>
+    <PageLayout sidebar={<AppSidebar variant="inset" />}>
       <Outlet />
     </PageLayout>
   )

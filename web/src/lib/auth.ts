@@ -46,6 +46,7 @@ export async function checkAuth({ queryClient }: { queryClient: QueryClient }) {
   userStore.getState().set({
     id: data.id,
     email: data.email,
+    username: data.username,
   })
 }
 
@@ -54,17 +55,23 @@ export function logout({
   navigate,
   preload,
   queryClient,
+  includeRedirect = true,
 }: {
   location: Location
   navigate: NavigateFn
   preload: boolean
   queryClient: QueryClient
+  includeRedirect?: boolean
 }) {
   queryClient.removeQueries({ queryKey: [QUERY_KEYS.AUTH_ME] })
   userStore.getState().clear()
+  const search = includeRedirect ? { redirect: location.href } : undefined
   if (preload) {
-    navigate({ to: '/login', search: { redirect: location.href } })
+    navigate({
+      to: '/login',
+      search,
+    })
   } else {
-    throw redirect({ to: '/login', search: { redirect: location.href } })
+    throw redirect({ to: '/login', search })
   }
 }

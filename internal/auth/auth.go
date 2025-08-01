@@ -139,10 +139,11 @@ func NewJwtCookie(token string, exp int64) *http.Cookie {
 	}
 }
 
-func NewJwtClaims(id uuid.UUID, email string, jwtVersion int32) *jwt.Token {
+func NewJwtClaims(id uuid.UUID, email, username string, jwtVersion int32) *jwt.Token {
 	return jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"id":          id,
 		"email":       email,
+		"username":    username,
 		"jwt_version": jwtVersion,
 		"exp":         getExp(),
 	})
@@ -150,14 +151,15 @@ func NewJwtClaims(id uuid.UUID, email string, jwtVersion int32) *jwt.Token {
 
 func RefreshJWT(claims jwt.MapClaims) (*http.Cookie, error) {
 	secret := getSecret()
-
+	fmt.Println(claims)
 	version := claims["jwt_version"].(float64)
 	email := claims["email"].(string)
+	username := claims["username"].(string)
 	id, err := GetUUIDFromJWTClaims(claims)
 	if err != nil {
 		return nil, err
 	}
-	token := NewJwtClaims(id, email, int32(version))
+	token := NewJwtClaims(id, email, username, int32(version))
 	jwt, err := token.SignedString(secret)
 	if err != nil {
 		return nil, err
@@ -168,7 +170,7 @@ func RefreshJWT(claims jwt.MapClaims) (*http.Cookie, error) {
 
 func CreateJWT(user *db.User) (string, error) {
 	secret := getSecret()
-	token := NewJwtClaims(user.ID, user.Email, user.JwtVersion)
+	token := NewJwtClaims(user.ID, user.Email, user.Username, user.JwtVersion)
 	tokenString, err := token.SignedString(secret)
 	if err != nil {
 		return "", err

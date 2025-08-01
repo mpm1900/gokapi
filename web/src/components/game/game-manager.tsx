@@ -10,7 +10,7 @@ import { getRouteApi } from '@tanstack/react-router'
 import { useEffect } from 'react'
 import { Button } from '../ui/button'
 
-const route = getRouteApi('/app/$gameID')
+const route = getRouteApi('/game/$gameID')
 
 export function GameManager() {
   const { gameID } = route.useParams()

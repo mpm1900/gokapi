@@ -25,7 +25,7 @@ function SignUpForm() {
         },
         onSuccess() {
           toast.success('Successfully signed up!')
-          navigate({ to: '/app' })
+          navigate({ to: '/game' })
         },
       },
     )

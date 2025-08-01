@@ -12,31 +12,37 @@ import (
 )
 
 const createUser = `-- name: CreateUser :one
-INSERT INTO users (email, password, salt) VALUES ($1, $2, $3) RETURNING id, email, password, salt, jwt_version, username
+INSERT INTO users (email, password, salt, username) VALUES ($1, $2, $3, $4) RETURNING id, username, email, password, salt, jwt_version
 `
 
 type CreateUserParams struct {
 	Email    string `json:"email"`
 	Password string `json:"-"`
 	Salt     string `json:"-"`
+	Username string `json:"username"`
 }
 
 func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, error) {
-	row := q.db.QueryRow(ctx, createUser, arg.Email, arg.Password, arg.Salt)
+	row := q.db.QueryRow(ctx, createUser,
+		arg.Email,
+		arg.Password,
+		arg.Salt,
+		arg.Username,
+	)
 	var i User
 	err := row.Scan(
 		&i.ID,
+		&i.Username,
 		&i.Email,
 		&i.Password,
 		&i.Salt,
 		&i.JwtVersion,
-		&i.Username,
 	)
 	return i, err
 }
 
 const getUserByEmail = `-- name: GetUserByEmail :one
-SELECT id, email, password, salt, jwt_version, username FROM users WHERE email = $1
+SELECT id, username, email, password, salt, jwt_version FROM users WHERE email = $1
 `
 
 func (q *Queries) GetUserByEmail(ctx context.Context, email string) (User, error) {
@@ -44,17 +50,17 @@ func (q *Queries) GetUserByEmail(ctx context.Context, email string) (User, error
 	var i User
 	err := row.Scan(
 		&i.ID,
+		&i.Username,
 		&i.Email,
 		&i.Password,
 		&i.Salt,
 		&i.JwtVersion,
-		&i.Username,
 	)
 	return i, err
 }
 
 const getUserByID = `-- name: GetUserByID :one
-SELECT id, email, password, salt, jwt_version, username FROM users WHERE id = $1
+SELECT id, username, email, password, salt, jwt_version FROM users WHERE id = $1
 `
 
 func (q *Queries) GetUserByID(ctx context.Context, id uuid.UUID) (User, error) {
@@ -62,11 +68,11 @@ func (q *Queries) GetUserByID(ctx context.Context, id uuid.UUID) (User, error) {
 	var i User
 	err := row.Scan(
 		&i.ID,
+		&i.Username,
 		&i.Email,
 		&i.Password,
 		&i.Salt,
 		&i.JwtVersion,
-		&i.Username,
 	)
 	return i, err
 }
@@ -83,7 +89,7 @@ func (q *Queries) GetUserJwtVersion(ctx context.Context, id uuid.UUID) (int32, e
 }
 
 const getUsers = `-- name: GetUsers :many
-SELECT id, email, password, salt, jwt_version, username FROM users
+SELECT id, username, email, password, salt, jwt_version FROM users
 `
 
 func (q *Queries) GetUsers(ctx context.Context) ([]User, error) {
@@ -97,11 +103,11 @@ func (q *Queries) GetUsers(ctx context.Context) ([]User, error) {
 		var i User
 		if err := rows.Scan(
 			&i.ID,
+			&i.Username,
 			&i.Email,
 			&i.Password,
 			&i.Salt,
 			&i.JwtVersion,
-			&i.Username,
 		); err != nil {
 			return nil, err
 		}

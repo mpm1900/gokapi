@@ -29,7 +29,7 @@ export function LogInForm() {
           if (location.search.redirect) {
             return navigate({ href: location.search.redirect })
           }
-          navigate({ to: '/app' })
+          navigate({ to: '/game' })
         },
       },
     )

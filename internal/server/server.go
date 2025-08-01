@@ -34,7 +34,6 @@ func NewServer(ctx context.Context, queries *db.Queries) *Server {
 	api.Handle("POST /auth/signup", handleSignUp(ctx, queries))
 	api.Handle("POST /auth/login", handleLogin(ctx, queries))
 	api.Handle("POST /auth/logout", auth.WithJWT(handleLogout(ctx, queries), queries))
-
 	api.Handle("GET /games", auth.WithJWT(gamesHandler.HandleGetGames, queries))
 
 	mux.Handle("/api/", http.StripPrefix("/api", api))

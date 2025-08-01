@@ -1,5 +1,6 @@
 import { type GameClient } from '@/types/game'
 import { CrownIcon, UserIcon, type LucideProps } from 'lucide-react'
+
 export function RoleIcon({
   role,
   ...rest

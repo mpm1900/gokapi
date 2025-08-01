@@ -99,7 +99,12 @@ export function GameSidebar() {
                   {clients.map((client) => (
                     <SidebarMenuItem key={client.id}>
                       <SidebarMenuButton>
-                        <RoleIcon role={client.role} /> {client.user.email}
+                        <RoleIcon role={client.role} /> {client.user.email}{' '}
+                        {client.user.id === user?.id && (
+                          <span className="italic text-muted-foreground">
+                            (You)
+                          </span>
+                        )}
                       </SidebarMenuButton>
                     </SidebarMenuItem>
                   ))}

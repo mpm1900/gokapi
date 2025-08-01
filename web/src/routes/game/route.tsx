@@ -3,7 +3,7 @@ import { PageLayout } from '@/components/page-layout'
 import { authGuard } from '@/lib/auth'
 import { Outlet, createFileRoute } from '@tanstack/react-router'
 
-export const Route = createFileRoute('/app')({
+export const Route = createFileRoute('/game')({
   beforeLoad: authGuard(),
   component: RouteComponent,
 })
