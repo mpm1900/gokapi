@@ -32,26 +32,29 @@ var upgrader = websocket.Upgrader{
 }
 
 type Client struct {
-	ID          uuid.UUID `json:"id"`
-	User        *db.User  `json:"user"`
-	conn        *websocket.Conn
-	ctx         context.Context
-	cancel      context.CancelFunc
-	game        *Instance
-	nextState   chan State
-	nextClients chan []*Client
+	ID     uuid.UUID `json:"id"`
+	User   *db.User  `json:"user"`
+	conn   *websocket.Conn
+	ctx    context.Context
+	cancel context.CancelFunc
+	game   *Instance
+
+	nextState       chan State
+	nextClients     chan []*Client
+	nextChatMessage chan ChatMessage
 }
 
 func NewClient(game *Instance, user *db.User) *Client {
 	ctx, cancel := context.WithCancel(game.ctx)
 	return &Client{
-		ID:          user.ID,
-		ctx:         ctx,
-		cancel:      cancel,
-		game:        game,
-		nextState:   make(chan State),
-		nextClients: make(chan []*Client),
-		User:        user,
+		ID:              user.ID,
+		ctx:             ctx,
+		cancel:          cancel,
+		game:            game,
+		nextState:       make(chan State),
+		nextClients:     make(chan []*Client),
+		nextChatMessage: make(chan ChatMessage),
+		User:            user,
 	}
 }
 
@@ -84,6 +87,18 @@ func (c *Client) WriteClients(clients []*Client) error {
 		return err
 	}
 
+	if err = c.conn.WriteMessage(websocket.TextMessage, json); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (c *Client) WriteChatMessage(message ChatMessage) error {
+	json, err := json.Marshal(NewChatMessageMessage(message))
+	if err != nil {
+		return err
+	}
 	if err = c.conn.WriteMessage(websocket.TextMessage, json); err != nil {
 		return err
 	}
@@ -128,7 +143,7 @@ func (c *Client) listenIn() {
 
 		fmt.Println("received action", action)
 		select {
-		case c.game.Handle <- action:
+		case c.game.ReadAction <- action:
 		case <-c.ctx.Done():
 			return
 		}
@@ -154,6 +169,12 @@ func (c *Client) listenOut() {
 			fmt.Println("writing clients", len(clients))
 			c.conn.SetWriteDeadline(time.Now().Add(WriteWait))
 			if err := c.WriteClients(clients); err != nil {
+				return
+			}
+		case chatMessage := <-c.nextChatMessage:
+			fmt.Println("writing chat message", chatMessage)
+			c.conn.SetWriteDeadline(time.Now().Add(WriteWait))
+			if err := c.WriteChatMessage(chatMessage); err != nil {
 				return
 			}
 		// this block ensures that the client doesnt' get disconnected

@@ -17,7 +17,7 @@ type Instance struct {
 
 	Register   chan *Client `json:"-"`
 	Unregister chan *Client `json:"-"`
-	Handle     chan Action  `json:"-"`
+	ReadAction chan Action  `json:"-"`
 }
 
 func NewInstance(ctx context.Context, id uuid.UUID) *Instance {
@@ -28,7 +28,7 @@ func NewInstance(ctx context.Context, id uuid.UUID) *Instance {
 		State:      State{},
 		Register:   make(chan *Client),
 		Unregister: make(chan *Client),
-		Handle:     make(chan Action),
+		ReadAction: make(chan Action),
 	}
 }
 
@@ -69,6 +69,20 @@ func (i *Instance) BroadcastClients() {
 	}
 }
 
+func (i *Instance) BroadcastChatMessage(chatMessage ChatMessage) {
+	fmt.Println("broadcasting chat message", chatMessage)
+	for _, client := range i.Clients {
+		fmt.Println("broadcasting chat message to client", client.ID)
+		select {
+		case client.nextChatMessage <- chatMessage:
+		default:
+			// If the client's channel is blocked, unregister them.
+			// This prevents a slow client from blocking the entire broadcast.
+			i.UnregisterClient(client)
+		}
+	}
+}
+
 func (i *Instance) Run() {
 	fmt.Println("running game instance")
 	for {
@@ -82,9 +96,14 @@ func (i *Instance) Run() {
 			fmt.Println("unregistering client", client.ID)
 			i.UnregisterClient(client)
 			i.BroadcastClients()
-		case action := <-i.Handle:
-			if Reducer(i, action) {
+		case action := <-i.ReadAction:
+			switch Reducer(i, action) {
+			case state:
 				i.BroadcastState()
+			case clients:
+				i.BroadcastClients()
+			case chatMessage:
+				i.BroadcastChatMessage(action.ChatMessage)
 			}
 		}
 	}

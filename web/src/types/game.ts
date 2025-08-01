@@ -5,6 +5,12 @@ export type GameClient = {
   user: User
 }
 
+export type GameChatMessage = {
+  from: string
+  message: string
+  timestamp: Date
+}
+
 export type GameState = {
   value: number
 }
@@ -18,7 +24,16 @@ export type GameMessage =
       type: 'clients'
       clients: GameClient[]
     }
+  | {
+      type: 'chat-message'
+      chatMessage: GameChatMessage
+    }
 
-export type GameAction = {
-  type: 'INCREMENT'
-}
+export type GameAction =
+  | {
+      type: 'INCREMENT'
+    }
+  | {
+      type: 'CHAT_MESSAGE'
+      chatMessage: GameChatMessage
+    }

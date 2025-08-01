@@ -13,10 +13,18 @@ import {
   SidebarMenuItem,
 } from '../ui/sidebar'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs'
-import { useGameClients } from '@/hooks/use-game'
+import {
+  useGameChat,
+  useGameClients,
+  useGameConnection,
+} from '@/hooks/use-game'
+import { useUser } from '@/hooks/use-user'
 
 export function GameSidebar() {
+  const user = useUser()
+  const connection = useGameConnection()
   const { clients } = useGameClients()
+  const { messages } = useGameChat()
   return (
     <Sidebar
       collapsible="offcanvas"
@@ -24,51 +32,78 @@ export function GameSidebar() {
       variant="floating"
       className="m-2 h-[calc(100svh-1rem)]"
     >
-      <Tabs defaultValue="clients" asChild>
-        <>
-          <SidebarHeader className="items-center">
-            <TabsList>
-              <TabsTrigger value="chat">Chat</TabsTrigger>
-              <TabsTrigger value="clients">Clients</TabsTrigger>
-            </TabsList>
-          </SidebarHeader>
-          <TabsContent value="chat" asChild>
-            <>
-              <SidebarContent>
-                <SidebarGroup>
-                  <SidebarGroupContent>
-                    Chat message here...
-                  </SidebarGroupContent>
-                </SidebarGroup>
-              </SidebarContent>
-              <SidebarFooter>
-                <div className="flex row gap-2">
-                  <Input placeholder="Type a message..." />
-                  <Button variant="secondary" size="icon">
-                    <SendIcon />
-                  </Button>
-                </div>
-              </SidebarFooter>
-            </>
-          </TabsContent>
-          <TabsContent value="clients" asChild>
-            <SidebarContent>
-              <SidebarGroup>
-                <SidebarGroupContent>
-                  <SidebarMenu>
-                    {clients.map((client) => (
-                      <SidebarMenuItem key={client.id}>
-                        <SidebarMenuButton>
-                          {client.user.email}
-                        </SidebarMenuButton>
-                      </SidebarMenuItem>
-                    ))}
-                  </SidebarMenu>
-                </SidebarGroupContent>
-              </SidebarGroup>
-            </SidebarContent>
-          </TabsContent>
-        </>
+      <Tabs defaultValue="chat" className="h-full">
+        <SidebarHeader className="items-center">
+          <TabsList>
+            <TabsTrigger value="chat">Chat</TabsTrigger>
+            <TabsTrigger value="clients">Clients</TabsTrigger>
+          </TabsList>
+        </SidebarHeader>
+
+        <TabsContent value="chat" className="flex-1 flex flex-col">
+          <SidebarContent className="flex-1">
+            <SidebarGroup>
+              <SidebarGroupContent>
+                <SidebarMenu>
+                  {messages.map((message, i) => (
+                    <SidebarMenuItem key={i}>
+                      <SidebarMenuButton>{message.message}</SidebarMenuButton>
+                    </SidebarMenuItem>
+                  ))}
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </SidebarGroup>
+          </SidebarContent>
+          <SidebarFooter>
+            <form
+              className="flex row gap-2"
+              onSubmit={(event) => {
+                event.preventDefault()
+                connection.send({
+                  type: 'CHAT_MESSAGE',
+                  chatMessage: {
+                    from: user!.id,
+                    // @ts-ignore
+                    message: event.currentTarget.elements.message.value,
+                    timestamp: new Date(),
+                  },
+                })
+                event.currentTarget.reset()
+              }}
+            >
+              <Input
+                autoFocus
+                placeholder="Type a message..."
+                name="message"
+                disabled={!user}
+              />
+              <Button
+                type="submit"
+                variant="secondary"
+                size="icon"
+                disabled={!user}
+              >
+                <SendIcon />
+              </Button>
+            </form>
+          </SidebarFooter>
+        </TabsContent>
+
+        <TabsContent value="clients" asChild>
+          <SidebarContent>
+            <SidebarGroup>
+              <SidebarGroupContent>
+                <SidebarMenu>
+                  {clients.map((client) => (
+                    <SidebarMenuItem key={client.id}>
+                      <SidebarMenuButton>{client.user.email}</SidebarMenuButton>
+                    </SidebarMenuItem>
+                  ))}
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </SidebarGroup>
+          </SidebarContent>
+        </TabsContent>
       </Tabs>
     </Sidebar>
   )

@@ -15,13 +15,16 @@ import {
   createGameClientsStore,
   type GameClientsStore,
 } from './use-game-clients'
+import { createGameChatStore, type GameChatStore } from './use-game-chat'
 
 type GameContext = {
+  chat: StoreApi<GameChatStore> | null
   clients: StoreApi<GameClientsStore> | null
   connection: StoreApi<GameConnectionStore> | null
   state: StoreApi<GameStateStore> | null
 }
 const GameContext = createContext<GameContext>({
+  chat: null,
   clients: null,
   connection: null,
   state: null,
@@ -51,11 +54,21 @@ export function useGameClients() {
   return useStore(ctx.clients)
 }
 
+export function useGameChat() {
+  const ctx = useContext(GameContext)
+  if (!ctx || !ctx.chat) {
+    throw new Error('useGameStore must be used within a GameStoreProvider')
+  }
+  return useStore(ctx.chat)
+}
+
 export function GameProvider({ children }: PropsWithChildren) {
+  const chatRef = useRef(createGameChatStore())
   const connectionRef = useRef(createGameConnectionStore())
   const stateRef = useRef(createGameStateStore())
   const clientsRef = useRef(createGameClientsStore())
   const value = {
+    chat: chatRef.current,
     clients: clientsRef.current,
     connection: connectionRef.current,
     state: stateRef.current,

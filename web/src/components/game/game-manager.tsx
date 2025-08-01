@@ -1,4 +1,5 @@
 import {
+  useGameChat,
   useGameClients,
   useGameConnection,
   useGameState,
@@ -16,6 +17,7 @@ export function GameManager() {
   const connection = useGameConnection()
   const state = useGameState()
   const clients = useGameClients()
+  const chat = useGameChat()
 
   useEffect(() => {
     connection.connect(gameID, {
@@ -35,14 +37,22 @@ export function GameManager() {
         clients.set(msg.clients)
       }
     }
+    const chatHandler: MessageHandler = (msg) => {
+      console.log('chat', msg)
+      if (msg.type === 'chat-message') {
+        chat.add(msg.chatMessage)
+      }
+    }
     connection.on('state', stateHandler)
     connection.on('clients', clientsHandler)
+    connection.on('chat-message', chatHandler)
 
     return () => {
       console.log('disconnecting')
       connection.disconnect()
       connection.off('state', stateHandler)
       connection.off('clients', clientsHandler)
+      connection.off('chat-message', chatHandler)
     }
   }, [])
 

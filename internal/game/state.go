@@ -1,21 +1,32 @@
 package game
 
 type Action struct {
-	Type string
+	Type        string
+	ChatMessage ChatMessage
 }
 
 const INCREMENT = "INCREMENT"
+const CHAT_MESSAGE = "CHAT_MESSAGE"
 
 type State struct {
 	Value uint `json:"value"`
 }
 
-func Reducer(instance *Instance, action Action) bool {
+const (
+	state = iota
+	clients
+	chatMessage
+	none
+)
+
+func Reducer(instance *Instance, action Action) int {
 	switch action.Type {
 	case INCREMENT:
 		instance.State.Value++
-		return true
+		return state
+	case CHAT_MESSAGE:
+		return chatMessage
 	default:
-		return false
+		return none
 	}
 }
