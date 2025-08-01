@@ -7,8 +7,10 @@ import {
 import type { MessageHandler } from '@/hooks/use-game-connection'
 import { getRouteApi } from '@tanstack/react-router'
 
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import { Button } from '../ui/button'
+import { toast } from 'sonner'
+import { cn } from '@/lib/utils'
 
 const route = getRouteApi('/game/$gameID')
 
@@ -18,13 +20,27 @@ export function GameManager() {
   const state = useGameState()
   const clients = useGameClients()
   const chat = useGameChat()
+  const hasRenderedDiconnectToast = useRef(false)
 
   useEffect(() => {
     connection.connect(gameID, {
       onConnect: (store) => {
         console.log('connected', store)
+        toast.success('Connected to game')
+        hasRenderedDiconnectToast.current = false
+      },
+      onError: (evt) => {
+        console.log('error', evt)
+      },
+      onDisconnect: () => {
+        console.log('disconnect')
+        if (!hasRenderedDiconnectToast.current) {
+          toast.error('Disconnected from game')
+          hasRenderedDiconnectToast.current = true
+        }
       },
     })
+
     const stateHandler: MessageHandler = (msg) => {
       console.log('state', msg)
       if (msg.type === 'state') {
@@ -48,7 +64,6 @@ export function GameManager() {
     connection.on('chat-message', chatHandler)
 
     return () => {
-      console.log('disconnecting')
       connection.disconnect()
       connection.off('state', stateHandler)
       connection.off('clients', clientsHandler)
@@ -59,11 +74,12 @@ export function GameManager() {
   return (
     <div>
       <div className="flex flex-rol items-center gap-2">
-        {connection.connected ? (
-          <div className="rounded-full size-2 bg-green-300" />
-        ) : (
-          <div className="rounded-full size-2 bg-green-300" />
-        )}
+        <div
+          className={cn('rounded-full size-2 bg-neutral-400', {
+            'bg-green-300': connection.connected,
+            'bg-red-300': !connection.connected,
+          })}
+        />
         <div className="text-muted-foreground italic">{gameID}</div>
       </div>
       <div className="flex flex-col items-center gap-2 p-8">

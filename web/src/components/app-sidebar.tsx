@@ -69,7 +69,6 @@ function AppSidebarUser() {
   const user = useUser()
   const logout = useLogOut()
   const { isMobile } = useSidebar()
-  console.log('user', user)
   if (!user) return null
 
   return (

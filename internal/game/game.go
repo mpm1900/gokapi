@@ -37,9 +37,9 @@ func (i *Instance) RegisterClient(client *Client) {
 }
 
 func (i *Instance) UnregisterClient(client *Client) {
-	if _, ok := i.Clients[client.ID]; ok {
-		delete(i.Clients, client.ID)
-	}
+	// if _, ok := i.Clients[client.ID]; ok {
+	delete(i.Clients, client.ID)
+	// }
 }
 
 func (i *Instance) BroadcastState() {
@@ -48,6 +48,8 @@ func (i *Instance) BroadcastState() {
 	for _, client := range i.Clients {
 		select {
 		case client.nextState <- state:
+		// if a client is unable to handle the state update,
+		//   unregister them so they don't the loop
 		default:
 			i.UnregisterClient(client)
 		}
@@ -63,6 +65,8 @@ func (i *Instance) BroadcastClients() {
 	for _, client := range i.Clients {
 		select {
 		case client.nextClients <- clients:
+		// if a client is unable to handle the state update,
+		//   unregister them so they don't the loop
 		default:
 			i.UnregisterClient(client)
 		}

@@ -7,6 +7,7 @@ export type MessageHandlers = Map<MessageType, Set<MessageHandler>>
 
 type GameConnectOptions = {
   onConnect?: (conn: GameConnectionStore) => void
+  onDisconnect?: () => void
   onError?: (evt: Event) => void
 }
 
@@ -56,8 +57,9 @@ export const createGameConnectionStore = () =>
         }
         conn.onclose = () => {
           if (conn === get().conn) {
-            console.log('closed')
-            set({ connected: false })
+            opts.onDisconnect?.()
+            set({ connected: false, conn: null })
+            setTimeout(() => get().connect(instanceID, opts), 1000)
           }
         }
 
