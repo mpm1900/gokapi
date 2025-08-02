@@ -3,7 +3,6 @@ package game
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"os"
 	"slices"
