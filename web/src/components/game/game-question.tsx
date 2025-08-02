@@ -75,7 +75,7 @@ export function GameQuestion({ question }: { question: Question }) {
                     ? 'default'
                     : 'secondary'
               }
-              disabled={!!selected}
+              disabled={!!selected || done}
               className="flex items-center justify-center gap-2 px-4 py-2 text-lg font-bold rounded-md"
               onClick={() => setSelected(choice)}
             >
