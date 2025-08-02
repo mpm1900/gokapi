@@ -1,5 +1,6 @@
-import type { GameAction, GameMessage } from '@/types/game'
 import { createStore } from 'zustand'
+
+import type { GameAction, GameMessage } from '@/types/game'
 
 type MessageType = GameMessage['type']
 export type MessageHandler = (message: GameMessage) => void

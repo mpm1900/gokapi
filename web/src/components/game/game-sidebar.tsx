@@ -1,4 +1,14 @@
+import { useMemo, useEffect, useState } from 'react'
 import { Loader2, SendIcon } from 'lucide-react'
+
+import {
+  useGameChat,
+  useGameClients,
+  useGameConnection,
+} from '@/hooks/use-game'
+import { useUser } from '@/hooks/use-user'
+import type { GameChatMessage, GameClient } from '@/types/game'
+
 import { Button } from '../ui/button'
 import { Input } from '../ui/input'
 import {
@@ -13,14 +23,6 @@ import {
   SidebarMenuItem,
 } from '../ui/sidebar'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs'
-import {
-  useGameChat,
-  useGameClients,
-  useGameConnection,
-} from '@/hooks/use-game'
-import { useUser } from '@/hooks/use-user'
-import type { GameChatMessage, GameClient } from '@/types/game'
-import { useMemo, useEffect, useState } from 'react'
 import { RoleIcon } from '../role-icon'
 
 function scroolToBottom(

@@ -1,5 +1,6 @@
-import type { GameChatMessage } from '@/types/game'
 import { createStore } from 'zustand'
+
+import type { GameChatMessage } from '@/types/game'
 
 export type GameChatStore = {
   messages: GameChatMessage[]

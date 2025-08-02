@@ -1,12 +1,13 @@
-import { QUERY_KEYS } from '@/hooks/queries/keys'
-import { authUserOptions } from '@/hooks/queries/use-auth-user'
-import { userStore } from '@/hooks/use-user'
 import type { QueryClient } from '@tanstack/react-query'
 import {
   redirect,
   type NavigateFn,
   type ParsedLocation,
 } from '@tanstack/react-router'
+
+import { QUERY_KEYS } from '@/hooks/queries/keys'
+import { authUserOptions } from '@/hooks/queries/use-auth-user'
+import { userStore } from '@/hooks/use-user'
 
 type AuthGuardOptions = {
   onError?: () => void

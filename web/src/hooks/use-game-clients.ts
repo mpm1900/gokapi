@@ -1,5 +1,6 @@
-import type { GameClient } from '@/types/game'
 import { createStore } from 'zustand'
+
+import type { GameClient } from '@/types/game'
 
 export type GameClientsStore = {
   clients: GameClient[]

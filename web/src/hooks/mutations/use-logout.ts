@@ -1,9 +1,10 @@
-import { instance } from '@/integrations/axios/instance'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from '@tanstack/react-router'
 import { toast } from 'sonner'
 
+import { instance } from '@/integrations/axios/instance'
 import { logout } from '@/lib/auth'
+
 import { MUTATION_KEYS } from './keys'
 
 export function useLogOut() {

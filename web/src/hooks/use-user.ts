@@ -1,5 +1,6 @@
-import type { User } from '@/types/user'
 import { create, useStore } from 'zustand'
+
+import type { User } from '@/types/user'
 
 export type UserStore = {
   user: User | null

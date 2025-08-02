@@ -1,5 +1,6 @@
-import type { GameState } from '@/types/game'
 import { createStore } from 'zustand'
+
+import type { GameState } from '@/types/game'
 
 export type GameStateStore = {
   state: GameState | null

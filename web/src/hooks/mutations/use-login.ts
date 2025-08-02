@@ -1,5 +1,7 @@
-import { instance } from '@/integrations/axios/instance'
 import { useMutation } from '@tanstack/react-query'
+
+import { instance } from '@/integrations/axios/instance'
+
 import { useUpdateUser } from '../use-user'
 import { MUTATION_KEYS } from './keys'
 
