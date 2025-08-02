@@ -41,14 +41,22 @@ export const createGameConnectionStore = () =>
       connect: (instanceID: string, opts) => {
         const old = get()
         if (old.conn) return opts.onConnect?.(old, opts)
+        let conn: WebSocket | undefined = undefined
 
-        const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
-        const host = window.location.host
-        const path = `/games/${instanceID}/connect`
-        const conn = new WebSocket(`${protocol}//${host}${path}`)
-        set({ conn })
+        try {
+          const protocol =
+            window.location.protocol === 'https:' ? 'wss:' : 'ws:'
+          const host = window.location.host
+          const path = `/games/${instanceID}/connect`
+          conn = new WebSocket(`${protocol}//${host}${path}`)
+          set({ conn })
+        } catch (e) {
+          console.log('ERROR', e)
+        }
 
-        conn.onopen = () => {
+        if (typeof conn == 'undefined') return
+
+        conn.onopen = (e: Event) => {
           set({ connected: true })
           opts.onConnect?.(get(), opts)
         }
@@ -60,15 +68,14 @@ export const createGameConnectionStore = () =>
           emit(msg)
         }
         conn.onclose = () => {
-          if (conn === get().conn) {
-            opts.onDisconnect?.(opts)
-            set({ connected: false })
-          }
+          set({ connected: false })
+          opts.onDisconnect?.(opts)
         }
       },
       disconnect: () => {
         const { conn, connected } = get()
         if (conn && connected) {
+          set({ conn: null })
           conn.close(1000)
         }
       },
