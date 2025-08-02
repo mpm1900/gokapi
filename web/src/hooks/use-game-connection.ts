@@ -52,9 +52,8 @@ export const createGameConnectionStore = () =>
           set({ conn })
         } catch (e) {
           console.log('ERROR', e)
+          return
         }
-
-        if (typeof conn == 'undefined') return
 
         conn.onopen = () => {
           set({ connected: true })
