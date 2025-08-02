@@ -8,10 +8,7 @@ import type { MessageHandler } from '@/hooks/use-game-connection'
 import { getRouteApi } from '@tanstack/react-router'
 
 import { useEffect, useRef } from 'react'
-import { Button } from '../ui/button'
 import { toast } from 'sonner'
-import { cn } from '@/lib/utils'
-import { Loader2 } from 'lucide-react'
 
 const route = getRouteApi('/game/$gameID')
 
@@ -77,30 +74,5 @@ export function GameManager() {
     }
   }, [])
 
-  return (
-    <div>
-      <div className="flex flex-rol items-center gap-2">
-        <div
-          className={cn('rounded-full size-2 bg-neutral-400', {
-            'bg-green-300': connection.connected,
-            'bg-red-300': !connection.connected,
-          })}
-        />
-        <div className="text-muted-foreground italic">{gameID}</div>
-      </div>
-      {!game.state && (
-        <div className="flex flex-col items-center gap-2 p-8">
-          <Loader2 className="animate-spin" />
-        </div>
-      )}
-      {game.state && (
-        <div className="flex flex-col items-center gap-2 p-8">
-          <div>State: {game.state.value}</div>
-          <Button onClick={() => connection.send({ type: 'INCREMENT' })}>
-            Increment
-          </Button>
-        </div>
-      )}
-    </div>
-  )
+  return null
 }

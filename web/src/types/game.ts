@@ -38,3 +38,27 @@ export type GameAction =
       type: 'CHAT_MESSAGE'
       chatMessage: GameChatMessage
     }
+
+type BaseQuestion = {
+  id: string
+  prompt: string
+  time: number
+}
+
+export type QuestionChoice = {
+  id: string
+  text: string
+}
+
+export type Question = BaseQuestion &
+  (
+    | {
+        type: 'MULTIPLE_CHOICE'
+        eval: QuestionChoice[] | ((choice: QuestionChoice) => boolean)
+        choices: QuestionChoice[]
+      }
+    | {
+        type: 'FREE_TEXT'
+        eval?: (text: string) => boolean
+      }
+  )
