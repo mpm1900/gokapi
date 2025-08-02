@@ -50,7 +50,7 @@ export function GameQuestion({ question }: { question: Question }) {
   useEffect(() => {
     startTimer()
     return () => clearTimer()
-  }, [question])
+  }, [question.id])
 
   return (
     <div className="flex flex-col gap-6">
