@@ -20,14 +20,42 @@ import {
 } from '@/hooks/use-game'
 import { useUser } from '@/hooks/use-user'
 import type { GameChatMessage, GameClient } from '@/types/game'
-import { useMemo } from 'react'
+import { useMemo, useEffect, useState } from 'react'
 import { RoleIcon } from '../role-icon'
+
+function scroolToBottom(
+  node: HTMLUListElement | null,
+  options?: ScrollIntoViewOptions,
+) {
+  if (!node) return
+  const lastMessage = node.lastElementChild
+  if (lastMessage) {
+    lastMessage.scrollIntoView(options)
+  }
+}
 
 export function GameSidebar() {
   const user = useUser()
   const connection = useGameConnection()
   const { clients } = useGameClients()
   const { messages } = useGameChat()
+  const [chatMenuNode, setChatMenuNode] = useState<HTMLUListElement | null>(
+    null,
+  )
+  const [activeTab, setActiveTab] = useState('chat')
+
+  useEffect(() => {
+    if (activeTab === 'chat') {
+      scroolToBottom(chatMenuNode, { behavior: 'smooth' })
+    }
+  }, [messages])
+
+  useEffect(() => {
+    if (activeTab === 'chat') {
+      scroolToBottom(chatMenuNode, { behavior: 'instant' })
+    }
+  }, [activeTab, chatMenuNode])
+
   return (
     <Sidebar
       collapsible="offcanvas"
@@ -35,7 +63,12 @@ export function GameSidebar() {
       variant="floating"
       className="m-2 h-[calc(100svh-1rem)]"
     >
-      <Tabs defaultValue="chat" className="h-full gap-0">
+      <Tabs
+        value={activeTab}
+        onValueChange={setActiveTab}
+        defaultValue="chat"
+        className="h-full gap-0"
+      >
         <SidebarHeader className="items-center">
           <TabsList>
             <TabsTrigger value="chat">Chat</TabsTrigger>
@@ -47,7 +80,7 @@ export function GameSidebar() {
           <SidebarContent className="flex-1 max-h-[calc(100vh-8rem)] overflow-auto">
             <SidebarGroup>
               <SidebarGroupContent>
-                <SidebarMenu>
+                <SidebarMenu ref={setChatMenuNode}>
                   {messages.map((message, i) => (
                     <ChatMessage key={i} message={message} clients={clients} />
                   ))}
