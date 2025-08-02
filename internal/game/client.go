@@ -144,7 +144,6 @@ func (c *Client) listenIn() {
 			break
 		}
 
-		fmt.Println("received action", action)
 		select {
 		case c.game.ReadAction <- action:
 		case <-c.ctx.Done():
@@ -163,19 +162,16 @@ func (c *Client) listenOut() {
 	for {
 		select {
 		case state := <-c.nextState:
-			fmt.Println("writing state", state)
 			c.conn.SetWriteDeadline(time.Now().Add(WriteWait))
 			if err := c.WriteState(state); err != nil {
 				return
 			}
 		case clients := <-c.nextClients:
-			fmt.Println("writing clients", len(clients))
 			c.conn.SetWriteDeadline(time.Now().Add(WriteWait))
 			if err := c.WriteClients(clients); err != nil {
 				return
 			}
 		case chatMessage := <-c.nextChatMessage:
-			fmt.Println("writing chat message", chatMessage)
 			c.conn.SetWriteDeadline(time.Now().Add(WriteWait))
 			if err := c.WriteChatMessage(chatMessage); err != nil {
 				return

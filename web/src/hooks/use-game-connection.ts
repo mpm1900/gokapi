@@ -56,7 +56,7 @@ export const createGameConnectionStore = () =>
 
         if (typeof conn == 'undefined') return
 
-        conn.onopen = (e: Event) => {
+        conn.onopen = () => {
           set({ connected: true })
           opts.onConnect?.(get(), opts)
         }

@@ -151,7 +151,6 @@ func NewJwtClaims(id uuid.UUID, email, username string, jwtVersion int32) *jwt.T
 
 func RefreshJWT(claims jwt.MapClaims) (*http.Cookie, error) {
 	secret := getSecret()
-	fmt.Println(claims)
 	version := claims["jwt_version"].(float64)
 	email := claims["email"].(string)
 	username := claims["username"].(string)

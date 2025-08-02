@@ -4,10 +4,7 @@ import {
   useGameConnection,
   useGameState,
 } from '@/hooks/use-game'
-import type {
-  GameConnectOptions,
-  MessageHandler,
-} from '@/hooks/use-game-connection'
+import type { MessageHandler } from '@/hooks/use-game-connection'
 import { getRouteApi } from '@tanstack/react-router'
 
 import { useEffect, useRef } from 'react'

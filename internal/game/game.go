@@ -44,7 +44,6 @@ func (i *Instance) UnregisterClient(client *Client) {
 }
 
 func (i *Instance) BroadcastState() {
-	fmt.Println("broadcasting state")
 	state := i.State
 	for _, client := range i.Clients {
 		select {
@@ -75,9 +74,7 @@ func (i *Instance) BroadcastClients() {
 }
 
 func (i *Instance) BroadcastChatMessage(chatMessage ChatMessage) {
-	fmt.Println("broadcasting chat message", chatMessage)
 	for _, client := range i.Clients {
-		fmt.Println("broadcasting chat message to client", client.ID)
 		select {
 		case client.nextChatMessage <- chatMessage:
 		default:
@@ -89,16 +86,13 @@ func (i *Instance) BroadcastChatMessage(chatMessage ChatMessage) {
 }
 
 func (i *Instance) Run() {
-	fmt.Println("running game instance")
 	for {
 		select {
 		case client := <-i.Register:
-			fmt.Println("registering client", client.ID)
 			i.RegisterClient(client)
 			i.BroadcastClients()
 			i.SendState(client)
 		case client := <-i.Unregister:
-			fmt.Println("unregistering client", client.ID)
 			i.UnregisterClient(client)
 			i.BroadcastClients()
 		case action := <-i.ReadAction:
