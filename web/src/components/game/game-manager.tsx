@@ -11,13 +11,14 @@ import { useEffect, useRef } from 'react'
 import { Button } from '../ui/button'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
+import { Loader2 } from 'lucide-react'
 
 const route = getRouteApi('/game/$gameID')
 
 export function GameManager() {
   const { gameID } = route.useParams()
   const connection = useGameConnection()
-  const state = useGameState()
+  const game = useGameState()
   const clients = useGameClients()
   const chat = useGameChat()
   const hasRenderedConnectToast = useRef(false)
@@ -27,9 +28,7 @@ export function GameManager() {
     connection.connect(gameID, {
       // @ts-ignore TODO reconnect
       onConnect: (store, opts) => {
-        console.log('connected', store.connected)
         if (!hasRenderedConnectToast.current) {
-          console.log('connected', store)
           toast.success('Connected to game')
         }
         hasRenderedConnectToast.current = true
@@ -40,7 +39,6 @@ export function GameManager() {
       },
       // @ts-ignore TODO reconnect
       onDisconnect: (opts) => {
-        console.log('disconnect')
         if (!hasRenderedDiconnectToast.current) {
           toast.error('Disconnected from game')
           hasRenderedDiconnectToast.current = true
@@ -52,7 +50,7 @@ export function GameManager() {
     const stateHandler: MessageHandler = (msg) => {
       console.log('state', msg)
       if (msg.type === 'state') {
-        state.set(msg.state)
+        game.set(msg.state)
       }
     }
     const clientsHandler: MessageHandler = (msg) => {
@@ -90,12 +88,19 @@ export function GameManager() {
         />
         <div className="text-muted-foreground italic">{gameID}</div>
       </div>
-      <div className="flex flex-col items-center gap-2 p-8">
-        <div>State: {state.value}</div>
-        <Button onClick={() => connection.send({ type: 'INCREMENT' })}>
-          Increment
-        </Button>
-      </div>
+      {!game.state && (
+        <div className="flex flex-col items-center gap-2 p-8">
+          <Loader2 className="animate-spin" />
+        </div>
+      )}
+      {game.state && (
+        <div className="flex flex-col items-center gap-2 p-8">
+          <div>State: {game.state.value}</div>
+          <Button onClick={() => connection.send({ type: 'INCREMENT' })}>
+            Increment
+          </Button>
+        </div>
+      )}
     </div>
   )
 }

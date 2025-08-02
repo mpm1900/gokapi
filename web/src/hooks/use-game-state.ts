@@ -1,14 +1,15 @@
 import type { GameState } from '@/types/game'
 import { createStore } from 'zustand'
 
-export type GameStateStore = GameState & {
+export type GameStateStore = {
+  state: GameState | null
   set: (value: GameState) => void
 }
 
 export const createGameStateStore = () =>
   createStore<GameStateStore>((set) => {
     return {
-      value: 0,
-      set: (value) => set(value),
+      state: null,
+      set: (state) => set({ state }),
     }
   })

@@ -1,4 +1,4 @@
-import { SendIcon } from 'lucide-react'
+import { Loader2, SendIcon } from 'lucide-react'
 import { Button } from '../ui/button'
 import { Input } from '../ui/input'
 import {
@@ -77,13 +77,13 @@ export function GameSidebar() {
                 autoComplete="off"
                 placeholder="Type a message..."
                 name="message"
-                disabled={!user}
+                disabled={!user || !connection.connected}
               />
               <Button
                 type="submit"
                 variant="secondary"
                 size="icon"
-                disabled={!user}
+                disabled={!user || !connection.connected}
               >
                 <SendIcon />
               </Button>
@@ -96,6 +96,11 @@ export function GameSidebar() {
             <SidebarGroup>
               <SidebarGroupContent>
                 <SidebarMenu>
+                  {clients.length === 0 && (
+                    <SidebarMenuItem className="flex items-center justify-center">
+                      <Loader2 className="animate-spin" />
+                    </SidebarMenuItem>
+                  )}
                   {clients.map((client) => (
                     <SidebarMenuItem key={client.id}>
                       <SidebarMenuButton>
