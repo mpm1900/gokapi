@@ -9,6 +9,7 @@ import type { Question } from '@/types/game'
 import { GameState } from '@/components/game/game-state'
 import { GameLeaveAlert } from '@/components/game/game-leave-alert'
 import { GameHeader } from '@/components/game/game-header'
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 
 export const Route = createFileRoute('/game/$gameID')({
   beforeLoad: authGuard(),
@@ -60,11 +61,27 @@ function RouteComponent() {
         style={{ '--sidebar-width': '320px' }}
       >
         <SidebarInset className="rounded-xl p-4">
-          <div className="flex flex-col items-center gap-4">
-            <GameHeader gameID={gameID} />
-            <GameQuestion question={question} />
-            <GameState />
-          </div>
+          <Tabs
+            className="flex flex-col items-center gap-4"
+            defaultValue="game"
+          >
+            <GameHeader
+              gameID={gameID}
+              tabs={
+                <TabsList>
+                  <TabsTrigger value="game">Game</TabsTrigger>
+                  <TabsTrigger value="questions">Questions</TabsTrigger>
+                </TabsList>
+              }
+            />
+            <TabsContent value="game">
+              <GameQuestion question={question} />
+              <GameState />
+            </TabsContent>
+            <TabsContent value="questions">
+              <div>Questions</div>
+            </TabsContent>
+          </Tabs>
         </SidebarInset>
         <GameSidebar />
       </SidebarProvider>

@@ -1,7 +1,13 @@
 import { useGameConnection } from '@/hooks/use-game'
 import { cn } from '@/lib/utils'
 
-export function GameHeader({ gameID }: { gameID: string }) {
+export function GameHeader({
+  gameID,
+  tabs,
+}: {
+  gameID: string
+  tabs: React.ReactNode
+}) {
   const connection = useGameConnection()
   return (
     <div className="w-full flex flex-row items-center justify-between gap-2">
@@ -14,6 +20,7 @@ export function GameHeader({ gameID }: { gameID: string }) {
         />
         <div className="text-muted-foreground italic">{gameID}</div>
       </div>
+      {tabs}
     </div>
   )
 }

@@ -45,8 +45,9 @@ func (i *Instance) UnregisterClient(client *Client) {
 func (i *Instance) BroadcastState() {
 	state := i.State
 	for _, client := range i.Clients {
+		clientState := state.ToClient(client)
 		select {
-		case client.nextState <- state:
+		case client.nextState <- clientState:
 		// if a client is unable to handle the state update,
 		//   unregister them so they don't the loop
 		default:
@@ -56,7 +57,8 @@ func (i *Instance) BroadcastState() {
 }
 
 func (i *Instance) SendState(client *Client) {
-	client.nextState <- i.State
+	clientState := i.State.ToClient(client)
+	client.nextState <- clientState
 }
 
 func (i *Instance) BroadcastClients() {

@@ -2,12 +2,12 @@ package game
 
 type Message struct {
 	Type        string       `json:"type"`
-	State       *State       `json:"state"`
+	State       *ClientState `json:"state"`
 	Clients     []*Client    `json:"clients"`
 	ChatMessage *ChatMessage `json:"chatMessage"`
 }
 
-func NewStateMessage(state State) Message {
+func NewStateMessage(state ClientState) Message {
 	return Message{
 		Type:        "state",
 		State:       &state,

@@ -39,7 +39,7 @@ type Client struct {
 	cancel context.CancelFunc
 	game   *Instance
 
-	nextState       chan State
+	nextState       chan ClientState
 	nextClients     chan []*Client
 	nextChatMessage chan ChatMessage
 }
@@ -54,7 +54,7 @@ func NewClient(game *Instance, user *db.User, role string) *Client {
 		Role:   role,
 		game:   game,
 
-		nextState:       make(chan State),
+		nextState:       make(chan ClientState),
 		nextClients:     make(chan []*Client),
 		nextChatMessage: make(chan ChatMessage),
 	}
@@ -71,7 +71,7 @@ func (c *Client) Connect(w http.ResponseWriter, r *http.Request) error {
 	return nil
 }
 
-func (c *Client) WriteState(state State) error {
+func (c *Client) WriteState(state ClientState) error {
 	json, err := json.Marshal(NewStateMessage(state))
 	if err != nil {
 		return err

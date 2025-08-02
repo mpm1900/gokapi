@@ -9,6 +9,10 @@ const INCREMENT = "INCREMENT"
 const CHAT_MESSAGE = "CHAT_MESSAGE"
 
 type State struct {
+	Value uint
+}
+
+type ClientState struct {
 	Value uint `json:"value"`
 }
 
@@ -28,5 +32,11 @@ func Reducer(instance *Instance, action Action) int {
 		return chatMessage
 	default:
 		return none
+	}
+}
+
+func (state State) ToClient(client *Client) ClientState {
+	return ClientState{
+		Value: state.Value,
 	}
 }

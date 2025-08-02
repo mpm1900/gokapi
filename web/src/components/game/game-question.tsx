@@ -28,6 +28,7 @@ export function GameQuestion({ question }: { question: Question }) {
     }
   }
 
+  const resolution = 100
   function startTimer() {
     setProgress(question.time)
     timer.current = setInterval(() => {
@@ -36,9 +37,9 @@ export function GameQuestion({ question }: { question: Question }) {
           clearTimer()
           return 0
         }
-        return prev - 100
+        return prev - resolution
       })
-    }, 100)
+    }, resolution)
   }
 
   function reset() {
