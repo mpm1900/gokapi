@@ -20,7 +20,7 @@ type GamesHandler struct {
 	gamesMu sync.RWMutex
 }
 
-func NewGamesHandler(ctx context.Context, queries *db.Queries) *GamesHandler {
+func NewGamesHandler(ctx context.Context, queries *db.Queries, store *auth.Store) *GamesHandler {
 	gameID := uuid.New()
 	defaultInstance := game.NewInstance(ctx, gameID)
 	handler := &GamesHandler{
@@ -32,7 +32,7 @@ func NewGamesHandler(ctx context.Context, queries *db.Queries) *GamesHandler {
 
 	go defaultInstance.Run()
 
-	handler.mux.HandleFunc("GET /{gameID}/connect", auth.WithJWT(handler.handleGameConnection(ctx, queries), queries))
+	handler.mux.HandleFunc("GET /{gameID}/connect", auth.WithJWT(handler.handleGameConnection(ctx, queries), store))
 	return handler
 }
 

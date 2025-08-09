@@ -3,6 +3,7 @@ package server
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"io"
 	"log/slog"
 	"net/http"
@@ -34,7 +35,7 @@ func getAuthBody(r *http.Request) (*body, error) {
 }
 
 // POST /auth/signup
-func handleSignUp(ctx context.Context, queries *db.Queries) http.HandlerFunc {
+func handleSignUp(ctx context.Context, queries *db.Queries, store *auth.Store) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		body, err := getAuthBody(r)
 
@@ -59,6 +60,7 @@ func handleSignUp(ctx context.Context, queries *db.Queries) http.HandlerFunc {
 			return
 		}
 
+		store.Set(dbuser.ID.String(), fmt.Sprintf("%d", dbuser.JwtVersion))
 		cookie, err := auth.CreateJWTCookie(dbuser)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
@@ -77,7 +79,7 @@ func handleSignUp(ctx context.Context, queries *db.Queries) http.HandlerFunc {
 }
 
 // POST /auth/login
-func handleLogin(ctx context.Context, queries *db.Queries) http.HandlerFunc {
+func handleLogin(ctx context.Context, queries *db.Queries, store *auth.Store) http.HandlerFunc {
 	logger := slog.Default()
 	return func(w http.ResponseWriter, r *http.Request) {
 		body, err := getAuthBody(r)
@@ -105,6 +107,7 @@ func handleLogin(ctx context.Context, queries *db.Queries) http.HandlerFunc {
 		}
 
 		logger.Info("User logged in", "user", user.Email)
+		store.Set(user.ID.String(), fmt.Sprintf("%d", user.JwtVersion))
 		jwt, err := auth.ParseJWT(cookie.Value)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
@@ -118,7 +121,7 @@ func handleLogin(ctx context.Context, queries *db.Queries) http.HandlerFunc {
 }
 
 // POST /auth/logout
-func handleLogout(ctx context.Context, queries *db.Queries) http.HandlerFunc {
+func handleLogout(ctx context.Context, queries *db.Queries, store *auth.Store) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		jwt := r.Context().Value("jwt").(jwt.MapClaims)
 
@@ -128,6 +131,7 @@ func handleLogout(ctx context.Context, queries *db.Queries) http.HandlerFunc {
 			return
 		}
 		queries.LogOutUser(ctx, id)
+		store.Delete(id.String())
 		http.SetCookie(w, &http.Cookie{
 			Name:     "jwt",
 			Value:    "",

@@ -47,7 +47,7 @@ func CheckPasswords(a, b, salt string) error {
 	return bcrypt.CompareHashAndPassword([]byte(b), []byte(salted))
 }
 
-func WithJWT(next http.HandlerFunc, queries *db.Queries) http.HandlerFunc {
+func WithJWT(next http.HandlerFunc, store *Store) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		cookie, err := r.Cookie("jwt")
 		if err != nil {
@@ -55,7 +55,7 @@ func WithJWT(next http.HandlerFunc, queries *db.Queries) http.HandlerFunc {
 			return
 		}
 
-		jwt, err := ValidateJWT(cookie.Value, queries)
+		jwt, err := ValidateJWT(cookie.Value, store)
 		if err != nil {
 			w.WriteHeader(http.StatusUnauthorized)
 			return
@@ -97,7 +97,7 @@ func ValidateJWTClaims(claims jwt.MapClaims) error {
 	return jwt.NewValidator().Validate(claims)
 }
 
-func ValidateJWT(token string, queries *db.Queries) (jwt.MapClaims, error) {
+func ValidateJWT(token string, store *Store) (jwt.MapClaims, error) {
 	claims, err := ParseJWT(token)
 	if err != nil {
 		return nil, err
@@ -110,18 +110,15 @@ func ValidateJWT(token string, queries *db.Queries) (jwt.MapClaims, error) {
 	if !ok {
 		return nil, errors.New("failed to parse jwt_version as float64")
 	}
-	tokenJwtVersion := int32(tokenJwtVersionFloat)
 
-	/* currently we are fetching the jwt_version from postgres, but
-	 * we should consider using redis or something down the line
-	 */
 	userID, err := uuid.Parse(claims["id"].(string))
-	dbJwtVersion, err := queries.GetUserJwtVersion(context.Background(), userID)
 	if err != nil {
 		return nil, err
 	}
 
-	if dbJwtVersion != tokenJwtVersion {
+	tokenJwtVersionString := fmt.Sprintf("%d", int(tokenJwtVersionFloat))
+	storeJwtVersionString, ok := store.Get(userID.String())
+	if storeJwtVersionString != tokenJwtVersionString {
 		return nil, errors.New("jwt_version mismatch")
 	}
 	return claims, nil

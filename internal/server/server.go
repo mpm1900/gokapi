@@ -26,16 +26,17 @@ func NewServer(ctx context.Context, queries *db.Queries) *Server {
 		return nil
 	}
 
-	gamesHandler := NewGamesHandler(ctx, queries)
+	store := auth.NewStore()
+	gamesHandler := NewGamesHandler(ctx, queries, store)
 
 	mux := http.NewServeMux()
 	api := http.NewServeMux()
-	api.Handle("GET  /auth/me", auth.WithJWT(handleMe(ctx), queries))
-	api.Handle("POST /auth/signup", handleSignUp(ctx, queries))
-	api.Handle("POST /auth/login", handleLogin(ctx, queries))
-	api.Handle("POST /auth/logout", auth.WithJWT(handleLogout(ctx, queries), queries))
-	api.Handle("GET /games", auth.WithJWT(gamesHandler.HandleGetGames, queries))
-	api.Handle("POST /user/{userID}/username", auth.WithJWT(handleUpdateUsername(ctx, queries), queries))
+	api.Handle("GET  /auth/me", auth.WithJWT(handleMe(ctx), store))
+	api.Handle("POST /auth/signup", handleSignUp(ctx, queries, store))
+	api.Handle("POST /auth/login", handleLogin(ctx, queries, store))
+	api.Handle("POST /auth/logout", auth.WithJWT(handleLogout(ctx, queries, store), store))
+	api.Handle("GET /games", auth.WithJWT(gamesHandler.HandleGetGames, store))
+	api.Handle("POST /user/{userID}/username", auth.WithJWT(handleUpdateUsername(ctx, queries), store))
 
 	mux.Handle("/api/", http.StripPrefix("/api", api))
 	mux.Handle("/games/", http.StripPrefix("/games", gamesHandler))
