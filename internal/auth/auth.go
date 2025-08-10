@@ -93,16 +93,12 @@ func GetUUIDFromJWTClaims(claims jwt.MapClaims) (uuid.UUID, error) {
 	return userID, nil
 }
 
-func ValidateJWTClaims(claims jwt.MapClaims) error {
-	return jwt.NewValidator().Validate(claims)
-}
-
 func ValidateJWT(token string, store *Store) (jwt.MapClaims, error) {
 	claims, err := ParseJWT(token)
 	if err != nil {
 		return nil, err
 	}
-	if err := ValidateJWTClaims(claims); err != nil {
+	if err := jwt.NewValidator().Validate(claims); err != nil {
 		return nil, err
 	}
 
