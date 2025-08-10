@@ -15,9 +15,12 @@ export function GameState() {
   }
   return (
     <div className="flex flex-col gap-2 p-8">
-      <div>State: {game.state.value}</div>
-      <Button onClick={() => connection.send({ type: 'INCREMENT' })}>
-        Increment
+      <div>Time: {30 - game.state.value}</div>
+      <Button
+        disabled={game.state.running}
+        onClick={() => connection.send({ type: 'UPGRADE_QUESTION' })}
+      >
+        {game.state.running ? 'Running...' : 'Start 30s Timer'}
       </Button>
     </div>
   )

@@ -1,6 +1,7 @@
 package game
 
 import (
+	"fmt"
 	"sync"
 	"time"
 
@@ -43,21 +44,27 @@ func (q Question) Upgrade() LiveQuestion {
 }
 
 func (lq *LiveQuestion) Run(game *Instance) {
+	defer func() {
+		fmt.Println("LiveQUestion.Run ... end")
+	}()
+
 	lq.timer.Reset(time.Second * time.Duration(lq.seconds))
 
 	for {
 		select {
 		case <-lq.ticker.C:
-			game.BroadcastState()
+			action := Action{
+				Type: INCREMENT,
+			}
+			game.ReadAction <- action
 		case <-lq.timer.C:
 			lq.ticker.Stop()
-			lq.timer.Stop()
 
-			action := Action{}
-			Reducer(game, action)
-			game.BroadcastState()
-
-			println("DONE")
+			action := Action{
+				Type:    SET_RUNNING_P,
+				Running: false,
+			}
+			game.ReadAction <- action
 			return
 		}
 	}

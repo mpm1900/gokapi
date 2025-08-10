@@ -19,7 +19,7 @@ type body struct {
 	Password string
 }
 
-func getAuthBody(r *http.Request) (*body, error) {
+func readAuthBody(r *http.Request) (*body, error) {
 	req, err := io.ReadAll(r.Body)
 	if err != nil {
 		return nil, err
@@ -37,7 +37,7 @@ func getAuthBody(r *http.Request) (*body, error) {
 // POST /auth/signup
 func handleSignUp(ctx context.Context, queries *db.Queries, store *auth.Store) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		body, err := getAuthBody(r)
+		body, err := readAuthBody(r)
 
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
@@ -82,7 +82,7 @@ func handleSignUp(ctx context.Context, queries *db.Queries, store *auth.Store) h
 func handleLogin(ctx context.Context, queries *db.Queries, store *auth.Store) http.HandlerFunc {
 	logger := slog.Default()
 	return func(w http.ResponseWriter, r *http.Request) {
-		body, err := getAuthBody(r)
+		body, err := readAuthBody(r)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			return
@@ -144,7 +144,7 @@ func handleLogout(ctx context.Context, queries *db.Queries, store *auth.Store) h
 	}
 }
 
-// GET /auth/m
+// GET /auth/me
 func handleMe() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		jwt := r.Context().Value("jwt").(jwt.MapClaims)

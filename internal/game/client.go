@@ -54,9 +54,9 @@ func NewClient(game *Instance, user *db.User, role string) *Client {
 		Role:   role,
 		game:   game,
 
-		nextState:       make(chan ClientState),
-		nextClients:     make(chan []*Client),
-		nextChatMessage: make(chan ChatMessage),
+		nextState:       make(chan ClientState, 5),
+		nextClients:     make(chan []*Client, 5),
+		nextChatMessage: make(chan ChatMessage, 5),
 	}
 }
 

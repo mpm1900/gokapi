@@ -14,6 +14,7 @@ export type GameChatMessage = {
 
 export type GameState = {
   value: number
+  running: boolean
 }
 
 export type GameMessage =
@@ -37,6 +38,9 @@ export type GameAction =
   | {
       type: 'CHAT_MESSAGE'
       chatMessage: GameChatMessage
+    }
+  | {
+      type: 'UPGRADE_QUESTION'
     }
 
 type BaseQuestion = {

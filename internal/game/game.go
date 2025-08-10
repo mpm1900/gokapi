@@ -2,6 +2,7 @@ package game
 
 import (
 	"context"
+	"fmt"
 	"maps"
 	"slices"
 
@@ -22,10 +23,19 @@ type Instance struct {
 
 func NewInstance(ctx context.Context, id uuid.UUID) *Instance {
 	return &Instance{
-		ID:         id,
-		ctx:        ctx,
-		Clients:    make(map[uuid.UUID]*Client),
-		State:      State{},
+		ID:      id,
+		ctx:     ctx,
+		Clients: make(map[uuid.UUID]*Client),
+		State: State{
+			Question: &Question{
+				id:           uuid.New(),
+				seconds:      30,
+				query:        "What is the meaning of life?",
+				freeform:     false,
+				choices:      []string{"42", "420", "4200", "42000"},
+				correctIndex: 0,
+			},
+		},
 		Register:   make(chan *Client),
 		Unregister: make(chan *Client),
 		ReadAction: make(chan Action),
@@ -44,6 +54,7 @@ func (i *Instance) UnregisterClient(client *Client) {
 
 func (i *Instance) BroadcastState() {
 	state := i.State
+	fmt.Printf("BROADCAST STATE %#v\n", state)
 	for _, client := range i.Clients {
 		clientState := state.ToClient(client)
 		select {
@@ -104,6 +115,7 @@ func (i *Instance) Run() {
 				i.BroadcastClients()
 			case chatMessage:
 				i.BroadcastChatMessage(action.ChatMessage)
+			case none:
 			}
 		}
 	}
