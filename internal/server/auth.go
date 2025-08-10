@@ -145,7 +145,7 @@ func handleLogout(ctx context.Context, queries *db.Queries, store *auth.Store) h
 }
 
 // GET /auth/m
-func handleMe(ctx context.Context) http.HandlerFunc {
+func handleMe() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		jwt := r.Context().Value("jwt").(jwt.MapClaims)
 		cookie, err := auth.RefreshJWT(jwt)
